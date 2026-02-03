@@ -1,156 +1,246 @@
-// script.js - RAUDA BOUTIQUE (LÓGICA PREMIUM + GRID COMPACTA)
+// script.js - RAUDA BOUTIQUE (FIXED & IMPROVED)
+
+// --- CONFIGURACIÓN ---
+const ID_SHEET = '1jKoiVaK619iS7hGGsqtxsrWgzePmF_VY33VbIgdc-ag'; 
+const SHEET_TAB = 'rauda'; 
 
 const CONFIG = {
-    whatsappNumber: '5493447558764', // Tu número real
+    whatsappNumber: '5493447558764',
     businessName: 'Rauda Boutique',
+    menuUrl: `https://opensheet.elk.sh/${ID_SHEET}/${SHEET_TAB}`,
 };
 
-// DATOS MOCK
-const CATALOG = [
-    { 
-        id: 1, categoria: 'Mates', producto: 'Mate Imperial Premium', precio: 45000, 
-        descripcion: 'Calabaza seleccionada, forrado en cuero vaqueta con virola de alpaca cincelada a mano.', 
-        imagen: 'https://images.unsplash.com/photo-1616682662369-0268b8c2cc62?q=80&w=800&auto=format&fit=crop', destacado: true 
-    },
-    { 
-        id: 2, categoria: 'Mates', producto: 'Mate Camionero Algarrobo', precio: 28000, 
-        descripcion: 'Madera de algarrobo estacionada, boca ancha ideal para yerba uruguaya.', 
-        imagen: 'https://images.unsplash.com/photo-1596489397635-c80f4db23932?q=80&w=800&auto=format&fit=crop', destacado: false 
-    },
-    { 
-        id: 3, categoria: 'Cuchillería', producto: 'Cuchillo Verijero 15cm', precio: 35000, 
-        descripcion: 'Hoja de acero al carbono, cabo de madera dura y terminaciones en bronce.', 
-        imagen: 'https://images.unsplash.com/photo-1591375821868-b3cb075d9e5d?q=80&w=800&auto=format&fit=crop', destacado: true 
-    },
-    { 
-        id: 4, categoria: 'Cuero', producto: 'Billetera Vaqueta', precio: 18500, 
-        descripcion: '100% cuero genuino, costura a mano. Diseño minimalista y duradero.', 
-        imagen: 'https://images.unsplash.com/photo-1627123424574-181ce5171c98?q=80&w=800&auto=format&fit=crop', destacado: false 
-    },
-    { 
-        id: 5, categoria: 'Cuero', producto: 'Bolso Matero Rústico', precio: 62000, 
-        descripcion: 'Cuero graso, compartimientos rígidos para termo y mate. Correa regulable.', 
-        imagen: 'https://images.unsplash.com/photo-1548036328-c9fa89d128fa?q=80&w=800&auto=format&fit=crop', destacado: true 
-    },
-    { 
-        id: 6, categoria: 'Textiles', producto: 'Ruana de Lana Oveja', precio: 55000, 
-        descripcion: 'Tejida en telar, tintes naturales. Tono crudo y visón.', 
-        imagen: 'https://images.unsplash.com/photo-1520013322197-09e25d487201?q=80&w=800&auto=format&fit=crop', destacado: false 
-    }
-];
+// Mapeo de columnas (Asegúrate que en tu Excel se llamen así)
+const KEYS = {
+    id: 'id',
+    categoria: 'categoria',
+    producto: 'producto',
+    precio: 'precio',
+    descripcion: 'descripcion',
+    imagen: 'imagen',
+    destacado: 'destacado',
+    disponible: 'disponible'
+};
 
-// ESTADO GLOBAL
+let CATALOG = []; 
 let cart = [];
-let selectedPayment = 'Efectivo'; // Default
+let selectedPayment = 'Efectivo';
 
+// --- INICIALIZACIÓN ---
 document.addEventListener('DOMContentLoaded', () => {
     initApp();
     loadCart();
 });
 
-function initApp() {
-    renderCategories();
-    const categories = [...new Set(CATALOG.map(item => item.categoria))];
-    if (categories.length > 0) renderProducts(categories[0]);
+async function initApp() {
+    const container = document.getElementById('main-content');
+    
+    try {
+        // Spinner de carga
+        container.innerHTML = `
+            <div class="flex flex-col items-center justify-center py-20 fade-in-up">
+                <div class="w-8 h-8 border-4 border-rauda-terracotta border-t-transparent rounded-full animate-spin mb-4"></div>
+                <p class="text-rauda-leather font-serif italic">Preparando la boutique...</p>
+            </div>
+        `;
+
+        const response = await fetch(CONFIG.menuUrl);
+        if (!response.ok) throw new Error('Error de conexión con Google Sheets');
+        const data = await response.json();
+
+        // Procesar datos (Aquí aplicamos la lógica de Pelican para imágenes y precio)
+        CATALOG = data
+            .map((item, index) => ({
+                id: String(item[KEYS.id] || index), 
+                categoria: (item[KEYS.categoria] || 'Varios').trim(),
+                producto: (item[KEYS.producto] || '').trim(),
+                precio: parsePrice(item[KEYS.precio]), // Corrección de precio aplicada
+                descripcion: (item[KEYS.descripcion] || '').trim(),
+                imagen: procesarURLImagen(item[KEYS.imagen]), // Lógica Pelican de imágenes
+                destacado: isTrue(item[KEYS.destacado]),
+                disponible: isTrue(item[KEYS.disponible] || 'TRUE')
+            }))
+            .filter(item => item.producto && item.disponible); 
+
+        if (CATALOG.length === 0) {
+            container.innerHTML = '<div class="text-center py-20 opacity-50 font-serif">No se encontraron productos disponibles.</div>';
+            return;
+        }
+
+        renderCategories();
+        
+        // Cargar la PRIMERA categoría real del Excel (Ya no "Destacados" forzado)
+        const categories = [...new Set(CATALOG.map(item => item.categoria))];
+        if (categories.length > 0) {
+            renderProducts(categories[0]); 
+        }
+
+    } catch (error) {
+        console.error('Error cargando datos:', error);
+        container.innerHTML = `
+            <div class="text-center py-20 text-red-800 opacity-60">
+                <p class="font-bold">Error al cargar.</p>
+                <p class="text-xs mt-2">Verifica la conexión o el ID de la hoja.</p>
+            </div>
+        `;
+    }
 }
+
+// --- RENDERIZADO ---
 
 function renderCategories() {
     const nav = document.getElementById('nav-tabs');
     const categories = [...new Set(CATALOG.map(item => item.categoria))];
     
-    nav.innerHTML = `
-        <li>
-            <button onclick="renderProducts('Destacados', this)" class="nav-tab active text-xs md:text-sm font-bold uppercase tracking-widest px-4 py-2 text-rauda-dark/50 hover:text-rauda-terracotta transition-colors">
-                Destacados
-            </button>
-        </li>
-    `;
+    let navHtml = '';
 
-    categories.forEach(cat => {
-        const li = document.createElement('li');
-        li.innerHTML = `
-            <button onclick="renderProducts('${cat}', this)" class="nav-tab text-xs md:text-sm font-bold uppercase tracking-widest px-4 py-2 text-rauda-dark/50 hover:text-rauda-terracotta transition-colors">
-                ${cat}
-            </button>
+    categories.forEach((cat, index) => {
+        // La primera categoría activa por defecto visualmente
+        const isActive = index === 0 ? 'active text-rauda-terracotta border-b-rauda-terracotta' : 'text-rauda-dark/50';
+        
+        navHtml += `
+            <li>
+                <button onclick="renderProducts('${cat}', this)" class="nav-tab ${isActive} text-xs md:text-sm font-bold uppercase tracking-widest px-4 py-2 hover:text-rauda-terracotta transition-colors whitespace-nowrap">
+                    ${cat}
+                </button>
+            </li>
         `;
-        nav.appendChild(li);
     });
+    
+    nav.innerHTML = navHtml;
 }
 
 function renderProducts(category, btnElement) {
+    // UI: Actualizar pestañas activas
     if (btnElement) {
-        document.querySelectorAll('.nav-tab').forEach(btn => btn.classList.remove('active', 'text-rauda-terracotta'));
+        document.querySelectorAll('.nav-tab').forEach(btn => {
+            btn.classList.remove('active', 'text-rauda-terracotta');
+            btn.classList.add('text-rauda-dark/50');
+        });
         btnElement.classList.add('active', 'text-rauda-terracotta');
         btnElement.classList.remove('text-rauda-dark/50');
         btnElement.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
     }
 
     const container = document.getElementById('main-content');
-    let items = (category === 'Destacados') ? CATALOG.filter(i => i.destacado) : CATALOG.filter(i => i.categoria === category);
+    
+    // Filtrar items por la categoría seleccionada
+    const items = CATALOG.filter(i => i.categoria === category);
 
+    // Animación de salida
     container.style.opacity = '0';
     container.style.transform = 'translateY(10px)';
     
     setTimeout(() => {
-        const titleHtml = `
-            <div class="flex items-center gap-3 mb-6 md:mb-10 fade-in-up">
-                <span class="h-px bg-rauda-leather/10 flex-1"></span>
-                <h2 class="text-xl md:text-4xl font-display font-bold text-rauda-leather text-center uppercase tracking-wider">${category}</h2>
-                <span class="h-px bg-rauda-leather/10 flex-1"></span>
-            </div>
-            <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 md:gap-6 pb-10">
-                ${items.map((item, index) => createCard(item, index)).join('')}
-            </div>
+        container.innerHTML = ''; 
+
+        // Título de Categoría
+        const titleDiv = document.createElement('div');
+        titleDiv.className = 'flex items-center gap-3 mb-6 md:mb-10 fade-in-up';
+        titleDiv.innerHTML = `
+            <span class="h-px bg-rauda-leather/10 flex-1"></span>
+            <h2 class="text-xl md:text-4xl font-display font-bold text-rauda-leather text-center uppercase tracking-wider">${category}</h2>
+            <span class="h-px bg-rauda-leather/10 flex-1"></span>
         `;
+        container.appendChild(titleDiv);
+
+        if (items.length === 0) {
+            container.innerHTML += `<div class="text-center py-10 opacity-40 font-serif italic w-full">No hay productos en esta categoría.</div>`;
+        } else {
+            // Grilla: 2 columnas en móvil, 3 en tablet, 4 en desktop
+            const gridDiv = document.createElement('div');
+            gridDiv.className = 'grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 md:gap-6 pb-10';
+            
+            items.forEach((item, index) => {
+                gridDiv.innerHTML += createCardHtml(item, index);
+            });
+            
+            container.appendChild(gridDiv);
+        }
         
-        container.innerHTML = titleHtml;
+        // Animación de entrada
         container.style.opacity = '1';
         container.style.transform = 'translateY(0)';
     }, 300);
 }
 
-function createCard(item, index) {
-    // Hemos ajustado los tamaños de texto (text-sm, text-[10px]) para que entren bien en las cards chicas
+function createCardHtml(item, index) {
+    const imgUrl = item.imagen || 'https://via.placeholder.com/400x500?text=Sin+Imagen';
+    const priceFormatted = item.precio.toLocaleString('es-AR');
+    // Escape seguro para JSON en HTML
+    const itemJson = JSON.stringify(item).replace(/"/g, "&quot;");
+
+    // DISEÑO EPICO: 4:5 ratio, imagen full cover, textos elegantes
     return `
-    <article class="product-card group cursor-pointer" onclick='openProductModal(${JSON.stringify(item)})' style="animation: fadeInUp 0.6s ease-out ${index * 0.1}s backwards">
-        <div class="relative overflow-hidden aspect-card bg-gray-200 mb-3 rounded-lg shadow-sm">
-            <img src="${item.imagen}" class="product-image w-full h-full object-cover transition-transform duration-700 ease-in-out" alt="${item.producto}" loading="lazy">
-            <div class="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-            <div class="absolute bottom-2 right-2 bg-white/90 backdrop-blur-sm text-rauda-leather w-8 h-8 md:w-10 md:h-10 rounded-full flex items-center justify-center shadow-lg md:translate-y-12 md:opacity-0 md:group-hover:translate-y-0 md:group-hover:opacity-100 transition-all duration-300">
+    <article class="product-card group cursor-pointer relative flex flex-col h-full" onclick='openProductModal(${itemJson})' style="animation: fadeInUp 0.6s ease-out ${index * 0.05}s backwards">
+        
+        <div class="relative overflow-hidden aspect-[4/5] bg-gray-200 mb-3 rounded-sm shadow-sm w-full">
+            <img src="${imgUrl}" class="product-image w-full h-full object-cover transition-transform duration-700 ease-in-out group-hover:scale-105" alt="${item.producto}" loading="lazy">
+            
+            <div class="absolute inset-0 bg-gradient-to-t from-black/30 to-transparent opacity-60 group-hover:opacity-40 transition-opacity duration-300"></div>
+            
+            <div class="absolute bottom-2 right-2 bg-white/95 backdrop-blur-sm text-rauda-leather w-8 h-8 md:w-10 md:h-10 rounded-full flex items-center justify-center shadow-lg md:translate-y-12 md:opacity-0 md:group-hover:translate-y-0 md:group-hover:opacity-100 transition-all duration-300 z-10">
                 <i class="ph-bold ph-plus text-base md:text-lg"></i>
             </div>
         </div>
-        <div class="px-1">
+        
+        <div class="px-1 flex flex-col justify-between flex-1">
             <div class="flex flex-col gap-1">
-                <h3 class="font-serif text-sm md:text-lg text-rauda-dark leading-tight group-hover:text-rauda-terracotta transition-colors line-clamp-2 min-h-[2.5em]">${item.producto}</h3>
-                <span class="font-sans font-bold text-rauda-leather whitespace-nowrap bg-rauda-sand/30 px-2 py-1 rounded text-[10px] md:text-xs self-start">$${item.precio.toLocaleString('es-AR')}</span>
+                <h3 class="font-serif text-sm md:text-base text-rauda-dark leading-tight group-hover:text-rauda-terracotta transition-colors line-clamp-2">${item.producto}</h3>
+                <span class="font-sans font-bold text-rauda-leather whitespace-nowrap text-xs md:text-sm tracking-wide mt-1">$${priceFormatted}</span>
             </div>
         </div>
     </article>
     `;
 }
 
+// --- HELPERS (PELICAN LOGIC INTEGRADA) ---
+
+function isTrue(val) {
+    if (!val) return false;
+    const str = String(val).trim().toUpperCase();
+    return ['TRUE', 'VERDADERO', 'SI', 'SÍ', '1'].includes(str);
+}
+
+// FIX PRECIOS: Remueve puntos de miles antes de parsear
+function parsePrice(val) {
+    if (!val) return 0;
+    // Convierte "10.000" -> "10000"
+    let clean = String(val).replace(/\./g, '').replace(/,/g, '.').replace(/[^0-9.]/g, '');
+    return Number(clean);
+}
+
+// FIX IMÁGENES: Detecta links de Drive y los convierte
+function procesarURLImagen(url) {
+    if (!url) return null;
+    if (url.includes('drive.google.com')) {
+        const idMatch = url.match(/\/d\/(.*?)(?:\/|$)/);
+        if (idMatch && idMatch[1]) { 
+            return `https://lh3.googleusercontent.com/d/${idMatch[1]}`; 
+        }
+    }
+    return url;
+}
+
 // ==========================================
-// LOGICA DE CARRITO Y PEDIDOS (PORT DE EL REY)
+// LOGICA DE CARRITO Y PEDIDOS (MANTENIDA DE RAUDA)
 // ==========================================
 
 function addToCart(item) {
-    const existing = cart.find(i => i.id === item.id);
+    const existing = cart.find(i => String(i.id) === String(item.id));
     if (existing) {
         existing.cantidad++;
     } else {
-        cart.push({ ...item, cantidad: 1 });
+        cart.push({ ...item, cantidad: 1, id: String(item.id) });
     }
     saveCart();
     updateCartIcon();
-    
-    // Feedback Visual (Toast)
     showToast(`Agregado: ${item.producto}`);
     closeProductModal();
 }
 
 function removeFromCart(id) {
-    const index = cart.findIndex(i => i.id === id);
+    const index = cart.findIndex(i => String(i.id) === String(id));
     if (index > -1) {
         if (cart[index].cantidad > 1) {
             cart[index].cantidad--;
@@ -167,7 +257,6 @@ function updateCartIcon() {
     const count = cart.reduce((acc, item) => acc + item.cantidad, 0);
     document.getElementById('cart-count').innerText = count;
     const fab = document.getElementById('cart-fab');
-    
     if (count > 0) {
         fab.classList.remove('hidden');
         fab.classList.add('animate-[popIn_0.3s_ease-out]');
@@ -199,7 +288,7 @@ function renderCartItems() {
         return `
         <div class="flex gap-4 py-4 border-b border-rauda-leather/5">
             <div class="w-16 h-16 bg-gray-100 shrink-0 rounded-md overflow-hidden border border-rauda-leather/10">
-                <img src="${item.imagen}" class="w-full h-full object-cover">
+                <img src="${item.imagen || 'https://via.placeholder.com/100'}" class="w-full h-full object-cover">
             </div>
             <div class="flex-1">
                 <h4 class="font-serif text-rauda-dark leading-tight mb-1">${item.producto}</h4>
@@ -208,7 +297,7 @@ function renderCartItems() {
                     <p class="text-sm font-serif text-rauda-dark font-bold">$${subtotal.toLocaleString('es-AR')}</p>
                 </div>
             </div>
-            <button onclick="removeFromCart(${item.id})" class="text-red-400 hover:text-red-600 p-2 rounded-full hover:bg-red-50 transition-colors self-center">
+            <button onclick="removeFromCart('${item.id}')" class="text-red-400 hover:text-red-600 p-2 rounded-full hover:bg-red-50 transition-colors self-center">
                 <i class="ph-bold ph-trash"></i>
             </button>
         </div>
@@ -223,7 +312,6 @@ function selectPayment(method) {
     const btnCash = document.getElementById('btn-pago-efectivo');
     const btnTransfer = document.getElementById('btn-pago-transferencia');
 
-    // Estilos Activos (Terracotta) vs Inactivos (White)
     const activeClasses = ['bg-rauda-terracotta', 'text-white', 'border-rauda-terracotta'];
     const inactiveClasses = ['bg-white', 'text-rauda-leather', 'border-rauda-leather/20'];
 
@@ -262,12 +350,11 @@ function sendOrderToWhatsapp() {
 }
 
 // ==========================================
-// UTILIDADES (TOAST, MODALES, PERSISTENCIA)
+// UTILIDADES (TOAST, MODALES)
 // ==========================================
 
 function showToast(msg) {
     const div = document.createElement('div');
-    // Estilo Toast elegante (Cuero oscuro)
     div.className = 'fixed top-6 left-1/2 -translate-x-1/2 bg-rauda-leather text-white px-6 py-3 rounded-full shadow-2xl z-[200] text-xs font-bold uppercase tracking-widest flex items-center gap-3 animate-[fadeInUp_0.3s_ease-out]';
     div.innerHTML = `<i class="ph-fill ph-check-circle text-rauda-terracotta text-lg"></i> ${msg}`;
     document.body.appendChild(div);
@@ -278,12 +365,12 @@ function showToast(msg) {
     }, 2500);
 }
 
-// Modales (Con la animación premium que hicimos antes)
 function openProductModal(item) {
-    document.getElementById('modal-img').src = item.imagen;
+    const imgUrl = item.imagen || 'https://via.placeholder.com/500';
+    document.getElementById('modal-img').src = imgUrl;
     document.getElementById('modal-cat').innerText = item.categoria;
     document.getElementById('modal-title').innerText = item.producto;
-    document.getElementById('modal-desc').innerText = item.descripcion;
+    document.getElementById('modal-desc').innerText = item.descripcion || 'Sin descripción disponible.';
     document.getElementById('modal-price').innerText = "$" + item.precio.toLocaleString('es-AR');
     
     const btn = document.getElementById('modal-add-btn');
@@ -297,6 +384,7 @@ function openProductModal(item) {
 
     modal.classList.remove('hidden');
     document.body.style.overflow = 'hidden';
+    
     panel.classList.add('transition-all', 'duration-500', 'ease-out-expo');
 
     requestAnimationFrame(() => {
@@ -350,7 +438,6 @@ function closeCartModal() {
     }, 450);
 }
 
-// Persistencia local
 function saveCart() { localStorage.setItem('rauda_cart', JSON.stringify(cart)); }
 function loadCart() {
     const stored = localStorage.getItem('rauda_cart');
