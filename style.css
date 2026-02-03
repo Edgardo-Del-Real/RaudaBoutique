@@ -1,33 +1,30 @@
-/* Importamos fuentes elegantes de Google Fonts */
 @import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&family=Lato:wght@300;400;700&family=Playfair+Display:ital,wght@0,400..900;1,400..900&display=swap');
 
+/* Ocultar scrollbar pero mantener funcionalidad */
 .no-scrollbar::-webkit-scrollbar { display: none; }
 .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
 
-/* Animación de entrada suave y elegante */
-.fade-in { animation: fadeIn 1.2s cubic-bezier(0.22, 1, 0.36, 1) forwards; opacity: 0; transform: translateY(20px); }
-@keyframes fadeIn { to { opacity: 1; transform: translateY(0); } }
-
-/* Botones de navegación */
-.nav-tab {
-    transition: all 0.4s ease;
-    border-bottom: 1px solid transparent;
-}
-.nav-tab.active {
-    color: #B8422B; /* Terracotta */
-    border-bottom: 1px solid #B8422B;
-    font-family: 'Playfair Display', serif;
-    font-style: italic;
+/* Evita el rebote elástico en iOS en todo el cuerpo, solo permitido en contenedores con scroll */
+html, body {
+    overscroll-behavior-y: none; 
 }
 
-/* El botón flotante del carrito, pero más discreto */
-.cart-float { 
-    transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); 
-    box-shadow: 0 4px 20px rgba(184, 66, 43, 0.3);
-}
-.cart-float:active { transform: scale(0.95); }
+/* Animación de carga */
+.fade-in-up { animation: fadeInUp 0.8s cubic-bezier(0.2, 1, 0.3, 1) forwards; opacity: 0; transform: translateY(20px); }
+@keyframes fadeInUp { to { opacity: 1; transform: translateY(0); } }
 
-/* Estilo para las tarjetas de productos */
-.product-card:hover .product-image {
-    transform: scale(1.05);
+/* Navegación Activa */
+.nav-tab { transition: all 0.3s ease; position: relative; }
+.nav-tab.active { color: #B8422B; font-family: 'Playfair Display', serif; font-weight: 700; }
+/* Indicador sutil de punto debajo de la categoría activa */
+.nav-tab.active::after {
+    content: ''; position: absolute; bottom: -4px; left: 50%; transform: translateX(-50%);
+    width: 4px; height: 4px; background-color: #B8422B; border-radius: 50%;
 }
+
+/* Botón flotante con mejor respuesta táctil */
+.cart-float { transition: transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
+.cart-float:active { transform: scale(0.90); }
+
+/* Ajustes de imagen para evitar saltos de layout */
+.aspect-card { aspect-ratio: 4/5; }

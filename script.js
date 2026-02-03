@@ -107,161 +107,74 @@ function renderCategories() {
 }
 
 function renderProducts(category, btnElement) {
-    // UI Actualización de tabs
     if (btnElement) {
-        document.querySelectorAll('.nav-tab').forEach(btn => btn.classList.remove('active', 'text-rauda-terracotta'));
-        document.querySelectorAll('.nav-tab').forEach(btn => btn.classList.add('text-rauda-dark/50'));
-        btnElement.classList.add('active', 'text-rauda-terracotta');
-        btnElement.classList.remove('text-rauda-dark/50');
+        document.querySelectorAll('.nav-tab').forEach(btn => btn.classList.remove('active'));
+        btnElement.classList.add('active');
+        // Scroll automático del menú para centrar el botón activo en móvil
+        btnElement.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
     }
 
     const container = document.getElementById('main-content');
+    
+    // Filtrado
     let items;
-
     if (category === 'Destacados') {
         items = CATALOG.filter(i => i.destacado);
     } else {
         items = CATALOG.filter(i => i.categoria === category);
     }
 
-    // Animación de salida breve
+    // Ocultar suavemente
     container.style.opacity = '0';
+    container.style.transform = 'translateY(10px)';
+    container.style.transition = 'opacity 0.3s ease, transform 0.3s ease';
     
     setTimeout(() => {
+        // Título de categoría estilizado
         const titleHtml = `
-            <div class="flex items-center gap-4 mb-12">
-                <span class="h-px bg-rauda-leather/20 flex-1"></span>
-                <h2 class="text-3xl font-display text-rauda-leather text-center uppercase tracking-widest">${category}</h2>
-                <span class="h-px bg-rauda-leather/20 flex-1"></span>
+            <div class="flex items-center gap-3 mb-8 md:mb-12 fade-in-up">
+                <span class="h-px bg-rauda-leather/10 flex-1"></span>
+                <h2 class="text-2xl md:text-4xl font-display font-bold text-rauda-leather text-center uppercase tracking-wider">${category}</h2>
+                <span class="h-px bg-rauda-leather/10 flex-1"></span>
             </div>
-            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-x-8 gap-y-12">
-                ${items.map(item => createCard(item)).join('')}
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8 lg:gap-12 pb-10">
+                ${items.map((item, index) => createCard(item, index)).join('')}
             </div>
         `;
+        
         container.innerHTML = titleHtml;
         container.style.opacity = '1';
-        
-        // Animación de entrada para las cards
-        document.querySelectorAll('.product-card').forEach((el, index) => {
-            el.style.animation = `fadeIn 0.8s ease-out ${index * 0.1}s forwards`;
-            el.style.opacity = '0';
-        });
+        container.style.transform = 'translateY(0)';
     }, 300);
 }
 
-function createCard(item) {
+function createCard(item, index) {
+    // EN MOBILE: Quitamos el efecto hover complicado.
+    // El botón "Ver Detalle" ahora es un icono sutil siempre visible o simplemente toda la card es clickeable.
     return `
-    <article class="product-card group cursor-pointer" onclick='openProductModal(${JSON.stringify(item)})'>
-        <div class="relative overflow-hidden aspect-[4/5] bg-gray-200 mb-6">
-            <img src="${item.imagen}" class="product-image w-full h-full object-cover transition-transform duration-700 ease-in-out" alt="${item.producto}">
-            <div class="absolute inset-0 bg-rauda-dark/10 group-hover:bg-transparent transition-colors"></div>
+    <article class="product-card group cursor-pointer" onclick='openProductModal(${JSON.stringify(item)})' style="animation: fadeInUp 0.6s ease-out ${index * 0.1}s backwards">
+        <div class="relative overflow-hidden aspect-card bg-gray-200 mb-4 rounded-lg shadow-sm">
+            <img src="${item.imagen}" class="product-image w-full h-full object-cover transition-transform duration-700 ease-in-out will-change-transform" alt="${item.producto}" loading="lazy">
             
-            <button class="absolute bottom-0 right-0 bg-white text-rauda-leather px-6 py-3 font-bold uppercase text-xs tracking-widest translate-y-full group-hover:translate-y-0 transition-transform duration-300">
-                Ver Detalle
-            </button>
+            <div class="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+            
+            <div class="absolute bottom-3 right-3 bg-white/90 backdrop-blur-sm text-rauda-leather w-10 h-10 rounded-full flex items-center justify-center shadow-lg md:translate-y-12 md:opacity-0 md:group-hover:translate-y-0 md:group-hover:opacity-100 transition-all duration-300">
+                <i class="ph-bold ph-plus text-lg"></i>
+            </div>
         </div>
         
-        <div class="text-center">
-            <h3 class="font-serif text-lg text-rauda-dark mb-1 group-hover:text-rauda-terracotta transition-colors">${item.producto}</h3>
-            <span class="font-sans font-light text-rauda-leather text-sm">$${item.precio.toLocaleString('es-AR')}</span>
+        <div class="px-1">
+            <div class="flex justify-between items-start gap-2">
+                <h3 class="font-serif text-lg text-rauda-dark leading-tight group-hover:text-rauda-terracotta transition-colors">${item.producto}</h3>
+                <span class="font-sans font-bold text-rauda-leather whitespace-nowrap bg-rauda-sand/30 px-2 py-1 rounded text-xs">$${item.precio.toLocaleString('es-AR')}</span>
+            </div>
         </div>
     </article>
     `;
 }
 
-// LOGICA DE CARRITO (Adaptada de El Rey, pero más elegante)
-function addToCart(item) {
-    const existing = cart.find(i => i.id === item.id);
-    if (existing) {
-        existing.cantidad++;
-    } else {
-        cart.push({ ...item, cantidad: 1 });
-    }
-    saveCart();
-    updateCartIcon();
-    
-    // Feedback sutil
-    const btn = document.getElementById('modal-add-btn');
-    const originalText = btn.innerText;
-    btn.innerText = "AGREGADO ✓";
-    btn.classList.add('bg-rauda-terracotta');
-    setTimeout(() => {
-        btn.innerText = originalText;
-        btn.classList.remove('bg-rauda-terracotta');
-        closeProductModal();
-    }, 1000);
-}
-
-function removeFromCart(id) {
-    const index = cart.findIndex(i => i.id === id);
-    if (index > -1) {
-        cart.splice(index, 1);
-        saveCart();
-        updateCartIcon();
-        renderCartItems();
-    }
-}
-
-function updateCartIcon() {
-    const count = cart.reduce((acc, item) => acc + item.cantidad, 0);
-    document.getElementById('cart-count').innerText = count;
-    const fab = document.getElementById('cart-fab');
-    if (count > 0) fab.classList.remove('hidden');
-    else fab.classList.add('hidden');
-}
-
-function renderCartItems() {
-    const container = document.getElementById('cart-items-container');
-    const totalEl = document.getElementById('cart-total');
-    let total = 0;
-
-    if (cart.length === 0) {
-        container.innerHTML = `<div class="text-center py-20 opacity-50 font-serif italic">Tu selección está vacía.</div>`;
-        totalEl.innerText = "$0";
-        return;
-    }
-
-    container.innerHTML = cart.map(item => {
-        total += item.precio * item.cantidad;
-        return `
-        <div class="flex gap-4 py-4 border-b border-rauda-leather/5">
-            <div class="w-16 h-16 bg-gray-100 shrink-0">
-                <img src="${item.imagen}" class="w-full h-full object-cover">
-            </div>
-            <div class="flex-1">
-                <h4 class="font-serif text-rauda-dark">${item.producto}</h4>
-                <p class="text-xs text-rauda-leather/60 mb-2">$${item.precio.toLocaleString('es-AR')} x ${item.cantidad}</p>
-            </div>
-            <button onclick="removeFromCart(${item.id})" class="text-rauda-terracotta hover:text-red-700 text-xs font-bold uppercase tracking-wider self-center">
-                Eliminar
-            </button>
-        </div>
-        `;
-    }).join('');
-
-    totalEl.innerText = "$" + total.toLocaleString('es-AR');
-}
-
-function sendOrderToWhatsapp() {
-    if (cart.length === 0) return;
-    
-    // Mensaje formal estilo Boutique
-    let message = `Hola *${CONFIG.businessName}*, estoy interesado en adquirir los siguientes productos de su catálogo online:%0A%0A`;
-    let total = 0;
-    
-    cart.forEach(item => {
-        total += item.precio * item.cantidad;
-        message += `• ${item.cantidad}x *${item.producto}* ($${(item.precio * item.cantidad).toLocaleString('es-AR')})%0A`;
-    });
-    
-    message += `%0A────────────────%0A`;
-    message += `*Total Estimado: $${total.toLocaleString('es-AR')}*%0A`;
-    message += `%0A¿Podrían confirmarme la disponibilidad y métodos de envío? Muchas gracias.`;
-
-    window.open(`https://wa.me/${CONFIG.whatsappNumber}?text=${message}`, '_blank');
-}
-
-// MODALES
+// AJUSTE EN MODAL PARA MOBILE
 function openProductModal(item) {
     document.getElementById('modal-img').src = item.imagen;
     document.getElementById('modal-cat').innerText = item.categoria;
@@ -269,40 +182,84 @@ function openProductModal(item) {
     document.getElementById('modal-desc').innerText = item.descripcion;
     document.getElementById('modal-price').innerText = "$" + item.precio.toLocaleString('es-AR');
     
-    // Reemplazar botón para limpiar eventos anteriores
+    // Reset botón
     const btn = document.getElementById('modal-add-btn');
+    btn.innerHTML = `<span>Agregar</span><i class="ph-bold ph-plus"></i>`;
+    btn.classList.remove('bg-rauda-terracotta', 'text-white');
+    btn.classList.add('bg-rauda-leather', 'text-white');
+    
+    // Reasignar evento onclick
     const newBtn = btn.cloneNode(true);
     btn.parentNode.replaceChild(newBtn, btn);
     newBtn.onclick = () => addToCart(item);
 
     const modal = document.getElementById('product-modal');
+    const panel = document.getElementById('modal-panel');
+    const backdrop = document.getElementById('modal-backdrop');
+
     modal.classList.remove('hidden');
+    document.body.style.overflow = 'hidden'; // Evitar scroll de fondo
+    
+    // Animaciones diferentes para Mobile (Slide Up) vs Desktop (Fade/Scale)
     requestAnimationFrame(() => {
-        document.getElementById('modal-backdrop').classList.remove('opacity-0');
-        document.getElementById('modal-panel').classList.remove('opacity-0', 'translate-y-8');
+        backdrop.classList.remove('opacity-0');
+        
+        // Clases para mostrar
+        panel.classList.remove('translate-y-full', 'md:opacity-0', 'md:translate-y-8');
+        panel.classList.add('translate-y-0', 'md:opacity-100', 'md:translate-y-0');
     });
 }
 
 function closeProductModal() {
-    document.getElementById('modal-backdrop').classList.add('opacity-0');
-    document.getElementById('modal-panel').classList.add('opacity-0', 'translate-y-8');
-    setTimeout(() => document.getElementById('product-modal').classList.add('hidden'), 300);
+    const modal = document.getElementById('product-modal');
+    const panel = document.getElementById('modal-panel');
+    const backdrop = document.getElementById('modal-backdrop');
+
+    backdrop.classList.add('opacity-0');
+    
+    // Clases para ocultar
+    panel.classList.remove('translate-y-0', 'md:opacity-100', 'md:translate-y-0');
+    panel.classList.add('translate-y-full', 'md:opacity-0', 'md:translate-y-8');
+    
+    setTimeout(() => {
+        modal.classList.add('hidden');
+        document.body.style.overflow = '';
+    }, 300);
 }
 
+// AJUSTE CARRITO MOBILE
 function openCartModal() {
     renderCartItems();
     const modal = document.getElementById('cart-modal');
+    const panel = document.getElementById('cart-panel');
+    const backdrop = document.getElementById('cart-backdrop');
+    
     modal.classList.remove('hidden');
+    document.body.style.overflow = 'hidden';
+
     requestAnimationFrame(() => {
-        document.getElementById('cart-backdrop').classList.remove('opacity-0');
-        document.getElementById('cart-panel').classList.remove('translate-x-full');
+        backdrop.classList.remove('opacity-0');
+        // Mobile: Sube desde abajo. Desktop: Entra por derecha
+        panel.classList.remove('translate-y-full', 'md:translate-x-full', 'md:translate-y-0');
+        panel.classList.add('translate-y-0', 'md:translate-x-0');
     });
 }
 
 function closeCartModal() {
-    document.getElementById('cart-backdrop').classList.add('opacity-0');
-    document.getElementById('cart-panel').classList.add('translate-x-full');
-    setTimeout(() => document.getElementById('cart-modal').classList.add('hidden'), 500);
+    const modal = document.getElementById('cart-modal');
+    const panel = document.getElementById('cart-panel');
+    const backdrop = document.getElementById('cart-backdrop');
+
+    backdrop.classList.add('opacity-0');
+    
+    // Ocultar según dispositivo
+    panel.classList.remove('translate-y-0', 'md:translate-x-0');
+    panel.classList.add('translate-y-full', 'md:translate-x-full'); // Mobile abajo, PC derecha
+
+    setTimeout(() => {
+        modal.classList.add('hidden');
+        document.body.style.overflow = '';
+    }, 300);
 }
 
 // Persistencia local
