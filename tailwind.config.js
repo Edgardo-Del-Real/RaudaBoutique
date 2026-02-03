@@ -16,6 +16,12 @@ tailwind.config = {
                 display: ['"Cinzel"', 'serif'],
                 Lora: ['"Lora"', 'serif'],
             },
+            transitionTimingFunction: {
+                'out-expo': 'cubic-bezier(0.16, 1, 0.3, 1)', // Efecto "Snap" suave
+            },
+            transitionDuration: {
+                '400': '400ms',
+            },
             backgroundImage: {
                 'texture-paper': "url('https://www.transparenttextures.com/patterns/cream-paper.png')",
             },

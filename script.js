@@ -176,37 +176,45 @@ function createCard(item, index) {
 
 // AJUSTE EN MODAL PARA MOBILE
 function openProductModal(item) {
+    // 1. Llenar datos (Igual que antes)
     document.getElementById('modal-img').src = item.imagen;
     document.getElementById('modal-cat').innerText = item.categoria;
     document.getElementById('modal-title').innerText = item.producto;
     document.getElementById('modal-desc').innerText = item.descripcion;
     document.getElementById('modal-price').innerText = "$" + item.precio.toLocaleString('es-AR');
     
-    // Reset botón
+    // Configurar botón
     const btn = document.getElementById('modal-add-btn');
-    btn.innerHTML = `<span>Agregar</span><i class="ph-bold ph-plus"></i>`;
-    btn.classList.remove('bg-rauda-terracotta', 'text-white');
-    btn.classList.add('bg-rauda-leather', 'text-white');
-    
-    // Reasignar evento onclick
     const newBtn = btn.cloneNode(true);
     btn.parentNode.replaceChild(newBtn, btn);
     newBtn.onclick = () => addToCart(item);
 
+    // 2. Elementos del DOM
     const modal = document.getElementById('product-modal');
     const panel = document.getElementById('modal-panel');
     const backdrop = document.getElementById('modal-backdrop');
 
+    // 3. Preparar estado inicial (Hidden -> Block pero invisible)
     modal.classList.remove('hidden');
-    document.body.style.overflow = 'hidden'; // Evitar scroll de fondo
-    
-    // Animaciones diferentes para Mobile (Slide Up) vs Desktop (Fade/Scale)
+    document.body.style.overflow = 'hidden'; // Bloquear scroll fondo
+
+    // Aseguramos que las clases base de transición estén presentes
+    panel.classList.add('transition-all', 'duration-500', 'ease-out-expo');
+    backdrop.classList.add('transition-all', 'duration-500', 'ease-out-expo');
+
+    // 4. ANIMACIÓN DE ENTRADA (Next Frame)
     requestAnimationFrame(() => {
+        // Backdrop: Opacidad 0 -> 1
         backdrop.classList.remove('opacity-0');
+        backdrop.classList.add('opacity-100');
         
-        // Clases para mostrar
-        panel.classList.remove('translate-y-full', 'md:opacity-0', 'md:translate-y-8');
-        panel.classList.add('translate-y-0', 'md:opacity-100', 'md:translate-y-0');
+        // Panel Mobile: Sube desde abajo (TranslateY full -> 0)
+        panel.classList.remove('translate-y-full'); 
+        panel.classList.add('translate-y-0');
+        
+        // Panel Desktop: Zoom In y Fade In (Scale 95 -> 100, Opacity 0 -> 1)
+        panel.classList.remove('md:opacity-0', 'md:translate-y-8', 'md:scale-95');
+        panel.classList.add('md:opacity-100', 'md:translate-y-0', 'md:scale-100');
     });
 }
 
@@ -215,19 +223,28 @@ function closeProductModal() {
     const panel = document.getElementById('modal-panel');
     const backdrop = document.getElementById('modal-backdrop');
 
+    // 1. ANIMACIÓN DE SALIDA
+    
+    // Backdrop: Fade Out
+    backdrop.classList.remove('opacity-100');
     backdrop.classList.add('opacity-0');
     
-    // Clases para ocultar
-    panel.classList.remove('translate-y-0', 'md:opacity-100', 'md:translate-y-0');
-    panel.classList.add('translate-y-full', 'md:opacity-0', 'md:translate-y-8');
+    // Panel Mobile: Baja al fondo
+    panel.classList.remove('translate-y-0');
+    panel.classList.add('translate-y-full');
     
+    // Panel Desktop: Fade Out y Zoom Out leve
+    panel.classList.remove('md:opacity-100', 'md:translate-y-0', 'md:scale-100');
+    panel.classList.add('md:opacity-0', 'md:translate-y-8', 'md:scale-95');
+    
+    // 2. Esperar a que termine la animación para ocultar (500ms match duration)
     setTimeout(() => {
         modal.classList.add('hidden');
         document.body.style.overflow = '';
-    }, 300);
+    }, 450); // Un pelín menos que la duración para evitar parpadeos
 }
 
-// AJUSTE CARRITO MOBILE
+// LÓGICA DE CARRITO (Misma lógica de animación premium)
 function openCartModal() {
     renderCartItems();
     const modal = document.getElementById('cart-modal');
@@ -237,11 +254,19 @@ function openCartModal() {
     modal.classList.remove('hidden');
     document.body.style.overflow = 'hidden';
 
+    // Clases de transición
+    panel.classList.add('transition-all', 'duration-500', 'ease-out-expo');
+
     requestAnimationFrame(() => {
         backdrop.classList.remove('opacity-0');
-        // Mobile: Sube desde abajo. Desktop: Entra por derecha
-        panel.classList.remove('translate-y-full', 'md:translate-x-full', 'md:translate-y-0');
-        panel.classList.add('translate-y-0', 'md:translate-x-0');
+        
+        // Mobile: Sube
+        panel.classList.remove('translate-y-full');
+        panel.classList.add('translate-y-0');
+        
+        // Desktop: Entra por la derecha (Slide Left)
+        panel.classList.remove('md:translate-x-full');
+        panel.classList.add('md:translate-x-0');
     });
 }
 
@@ -252,16 +277,19 @@ function closeCartModal() {
 
     backdrop.classList.add('opacity-0');
     
-    // Ocultar según dispositivo
-    panel.classList.remove('translate-y-0', 'md:translate-x-0');
-    panel.classList.add('translate-y-full', 'md:translate-x-full'); // Mobile abajo, PC derecha
+    // Mobile: Baja
+    panel.classList.remove('translate-y-0');
+    panel.classList.add('translate-y-full');
+    
+    // Desktop: Sale por derecha
+    panel.classList.remove('md:translate-x-0');
+    panel.classList.add('md:translate-x-full');
 
     setTimeout(() => {
         modal.classList.add('hidden');
         document.body.style.overflow = '';
-    }, 300);
+    }, 450);
 }
-
 // Persistencia local
 function saveCart() { localStorage.setItem('rauda_cart', JSON.stringify(cart)); }
 function loadCart() {

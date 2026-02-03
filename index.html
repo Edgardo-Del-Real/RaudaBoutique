@@ -92,11 +92,12 @@
         
         <div class="fixed inset-0 z-10 w-screen h-full pointer-events-none flex items-end md:items-center justify-center md:p-4">
             
-            <div class="pointer-events-auto relative w-full md:max-w-3xl bg-rauda-base shadow-upwards md:shadow-2xl 
-                        rounded-t-[2rem] md:rounded-lg overflow-hidden flex flex-col md:flex-row 
-                        h-[85vh] md:h-auto md:max-h-[80vh]
-                        transform transition-transform duration-300 translate-y-full md:translate-y-8 md:opacity-0" 
-                 id="modal-panel">
+        <div class="pointer-events-auto relative w-full md:max-w-3xl bg-rauda-base shadow-upwards md:shadow-2xl 
+            rounded-t-[2rem] md:rounded-lg overflow-hidden flex flex-col md:flex-row 
+            h-[85vh] md:h-auto md:max-h-[80vh]
+            transform transition-all duration-500 ease-out-expo
+            translate-y-full md:translate-y-8 md:opacity-0 md:scale-95" 
+            id="modal-panel">
                 
                 <div class="absolute top-0 left-0 w-full h-6 flex justify-center items-center md:hidden z-20 bg-rauda-base" onclick="closeProductModal()">
                     <div class="w-12 h-1.5 bg-gray-300 rounded-full"></div>
