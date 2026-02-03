@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="es" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>RAUDA | Regionales Boutique</title>
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="tailwind.config.js"></script>
+    <link rel="stylesheet" href="style.css">
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+</head>
+
+<body class="bg-rauda-base text-rauda-dark font-sans antialiased pb-0 overflow-x-hidden bg-texture-paper">
+
+    <header class="relative h-[60vh] md:h-[70vh] w-full overflow-hidden flex items-center justify-center">
+        <div class="absolute inset-0 z-0">
+            <img src="https://images.unsplash.com/photo-1444464666168-49d633b86797?q=80&w=2069&auto=format&fit=crop" 
+                 alt="Textura Campo" class="w-full h-full object-cover brightness-[0.6] sepia-[0.3]">
+        </div>
+
+        <div class="relative z-10 text-center px-6 fade-in">
+            <p class="text-rauda-base/80 text-xs tracking-[0.4em] uppercase mb-4 font-sans font-light">Colón • Entre Ríos</p>
+            <h1 class="font-display text-6xl md:text-8xl text-rauda-base mb-2 tracking-wide leading-none">
+                RAUDA
+            </h1>
+            <h2 class="font-serif italic text-2xl text-rauda-terracotta tracking-widest font-light">
+                Boutique Regional
+            </h2>
+        </div>
+    </header>
+
+    <nav class="sticky top-0 z-40 bg-rauda-base/95 backdrop-blur-sm border-b border-rauda-leather/10 py-6 shadow-sm">
+        <div class="max-w-5xl mx-auto px-6">
+            <ul class="flex overflow-x-auto gap-8 justify-start md:justify-center no-scrollbar relative items-center" id="nav-tabs">
+                </ul>
+        </div>
+    </nav>
+
+    <main class="max-w-6xl mx-auto px-6 pt-12 pb-32 min-h-screen relative z-20" id="main-content">
+        </main>
+
+    <div id="cart-fab" onclick="openCartModal()" class="fixed bottom-8 right-8 z-50 hidden cursor-pointer cart-float group">
+        <div class="relative bg-rauda-leather w-14 h-14 rounded-full flex items-center justify-center text-rauda-base border border-rauda-terracotta/30">
+            <i class="ph ph-shopping-bag text-2xl font-light"></i>
+            <div id="cart-count" class="absolute -top-1 -right-1 bg-rauda-terracotta text-white font-serif italic text-xs w-6 h-6 flex items-center justify-center rounded-full shadow-md">0</div>
+        </div>
+        <span class="absolute right-16 top-1/2 -translate-y-1/2 bg-white px-3 py-1 rounded shadow text-xs font-bold text-rauda-leather opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none uppercase tracking-widest">
+            Ver Selección
+        </span>
+    </div>
+
+    <footer class="bg-rauda-dark text-rauda-base/60 py-20 border-t-4 border-rauda-terracotta relative">
+        <div class="max-w-4xl mx-auto px-6 text-center">
+            <h3 class="font-display text-3xl text-rauda-base mb-6">RAUDA.</h3>
+            
+            <div class="flex justify-center gap-8 mb-10">
+                <a href="#" class="hover:text-rauda-terracotta transition-colors"><i class="ph ph-instagram-logo text-2xl"></i></a>
+                <a href="#" class="hover:text-rauda-terracotta transition-colors"><i class="ph ph-whatsapp-logo text-2xl"></i></a>
+                <a href="#" class="hover:text-rauda-terracotta transition-colors"><i class="ph ph-map-pin text-2xl"></i></a>
+            </div>
+
+            <p class="font-serif italic text-sm mb-2">Artículos regionales, mate & cuero.</p>
+            <p class="text-xs uppercase tracking-widest opacity-40">© 2026 Rauda Colón.</p>
+        </div>
+    </footer>
+
+    <div id="product-modal" class="fixed inset-0 z-[100] hidden" role="dialog">
+        <div class="fixed inset-0 bg-rauda-dark/90 backdrop-blur-sm transition-opacity opacity-0" id="modal-backdrop" onclick="closeProductModal()"></div>
+        <div class="fixed inset-0 z-10 w-screen overflow-y-auto flex items-center justify-center p-4">
+            <div class="relative w-full max-w-lg bg-rauda-base shadow-2xl transition-all opacity-0 translate-y-8 duration-500 flex flex-col md:flex-row overflow-hidden" id="modal-panel">
+                
+                <div class="w-full md:w-1/2 h-64 md:h-auto relative bg-gray-100">
+                    <img id="modal-img" src="" class="w-full h-full object-cover">
+                </div>
+
+                <div class="w-full md:w-1/2 p-8 flex flex-col justify-center">
+                    <button onclick="closeProductModal()" class="absolute top-4 right-4 text-rauda-leather/50 hover:text-rauda-terracotta transition-colors">
+                        <i class="ph ph-x text-2xl"></i>
+                    </button>
+
+                    <span class="text-xs text-rauda-terracotta font-bold uppercase tracking-widest mb-2" id="modal-cat"></span>
+                    <h3 class="text-2xl font-serif text-rauda-dark mb-4 leading-tight" id="modal-title"></h3>
+                    <p class="text-rauda-dark/70 font-light text-sm leading-relaxed mb-6" id="modal-desc"></p>
+                    <span class="text-2xl font-display text-rauda-leather mb-8 block" id="modal-price"></span>
+                    
+                    <button id="modal-add-btn" class="w-full bg-rauda-leather text-white font-sans text-xs font-bold uppercase tracking-[0.2em] py-4 hover:bg-rauda-terracotta transition-colors duration-300">
+                        Agregar a la Selección
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="cart-modal" class="fixed inset-0 z-[100] hidden" role="dialog">
+        <div class="fixed inset-0 bg-rauda-dark/60 backdrop-blur-sm transition-opacity opacity-0" id="cart-backdrop" onclick="closeCartModal()"></div>
+        <div class="fixed inset-0 z-10 w-screen overflow-y-auto flex items-end justify-end">
+            
+            <div class="relative w-full max-w-md h-full md:h-screen bg-rauda-base shadow-2xl transform transition-transform translate-x-full duration-500 flex flex-col border-l-4 border-rauda-terracotta" id="cart-panel">
+                
+                <div class="p-8 border-b border-rauda-leather/10 flex justify-between items-center bg-white">
+                    <h3 class="text-xl font-display text-rauda-dark tracking-widest">TU SELECCIÓN</h3>
+                    <button onclick="closeCartModal()" class="text-rauda-leather/50 hover:text-rauda-terracotta"><i class="ph ph-x text-2xl"></i></button>
+                </div>
+
+                <div id="cart-items-container" class="flex-1 overflow-y-auto p-8 space-y-6">
+                    </div>
+
+                <div class="p-8 bg-rauda-sand/30 border-t border-rauda-leather/10">
+                    <div class="flex justify-between items-end mb-6">
+                        <span class="text-rauda-dark/60 text-xs font-bold uppercase tracking-widest">Total Estimado</span>
+                        <span id="cart-total" class="text-3xl font-display text-rauda-leather">$0</span>
+                    </div>
+                    
+                    <button onclick="sendOrderToWhatsapp()" class="w-full bg-green-700 hover:bg-green-800 text-white font-bold py-4 shadow-elegant transition-all flex items-center justify-center gap-3 text-sm uppercase tracking-widest">
+                        <i class="ph-bold ph-whatsapp-logo text-lg"></i> Consultar Disponibilidad
+                    </button>
+                    <p class="text-center text-[10px] text-rauda-dark/40 mt-3 font-sans">
+                        Se le redirigirá a WhatsApp para coordinar pago y envío.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
