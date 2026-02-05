@@ -28,3 +28,45 @@ html, body {
 
 /* Ajustes de imagen para evitar saltos de layout */
 .aspect-card { aspect-ratio: 4/5; }
+
+.typewriter-text {
+        /* Configuración base */
+        display: inline-block;
+        overflow: hidden;
+        white-space: nowrap;
+        width: 0; /* Empieza invisible */
+        
+        /* El cursor estilo Word (línea sólida inicial) */
+        border-right: 2px solid rgba(255,255,255,0.8); 
+        
+        /* LA ORQUESTA DE ANIMACIONES:
+           1. typing:    Espera 0.5s, luego escribe durante 2s.
+           2. blink:     Parpadea cada 0.75s infinitamente.
+           3. hide-cursor: A los 3s (0.5s espera + 2s escritura + 0.5s pausa final), mata el cursor.
+        */
+        animation: 
+            typing 2s steps(9) 0.5s forwards,
+            blink 0.75s step-end infinite,
+            hide-cursor 0s linear 3s forwards; 
+    }
+
+    /* 1. La magia de escribir (de 0 a 100% de ancho) */
+    @keyframes typing {
+        from { width: 0 }
+        to { width: 100% }
+    }
+
+    /* 2. El parpadeo del cursor (aparece y desaparece) */
+    @keyframes blink {
+        from, to { border-color: transparent }
+        50% { border-color: rgba(255,255,255,0.8) }
+    }
+
+    /* 3. El truco final: Ocultar el cursor para siempre */
+    @keyframes hide-cursor {
+        to { 
+            border-color: transparent; 
+            border-right-width: 0;
+        }
+    }
+

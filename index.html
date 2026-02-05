@@ -17,32 +17,39 @@
 
 <body class="bg-rauda-base text-rauda-dark font-sans antialiased pb-0 overflow-x-hidden bg-texture-paper">
 
-    <header class="relative h-[85vh] w-full overflow-hidden flex items-center justify-center bg-[#1a1512]">
-        <div class="absolute inset-0 z-0">
-            <img src="./assets/hero.png" 
-                alt="Textura Campo" 
-                class="w-full h-full object-cover opacity-60 scale-105 animate-[pulse_10s_ease-in-out_infinite]">
-            <div class="absolute inset-0 bg-[radial-gradient(circle_at_center,transparent_0%,rgba(0,0,0,0.8)_100%)]"></div>
-        </div>
+    <header class="relative h-[100vh] w-full overflow-hidden flex items-center justify-center bg-[#1a1512]">
+    <div class="absolute inset-0 z-0">
+        <img src="./assets/hero.png" 
+            alt="Textura Campo" 
+            class="w-full h-full object-cover opacity-60 scale-105 animate-[pulse_10s_ease-in-out_infinite]">
+        <div class="absolute inset-0 opacity-50 bg-black"></div>
+    </div>
 
-        <div class="relative z-10 flex flex-col items-center justify-center w-full max-w-5xl px-6 fade-in-up">
-            <div class="flex items-center gap-4 mb-6 opacity-0 animate-[fadeIn_1s_ease-out_0.5s_forwards]">
-                <span class="h-[1px] w-8 md:w-16 bg-rauda-terracotta/60"></span>
-                <p class="text-rauda-base/90 text-[10px] md:text-xs tracking-[0.5em] uppercase font-Lora font-bold shadow-black drop-shadow-md">
-                    COLÓN • ENTRE RÍOS
-                </p>
-                <span class="h-[1px] w-8 md:w-16 bg-rauda-terracotta/60"></span>
-            </div>
-
-            <div class="relative group cursor-default transition-transform duration-700 hover:scale-[1.02]">
-                <div class="absolute -inset-10 bg-rauda-base/10 blur-3xl rounded-full opacity-0 group-hover:opacity-30 transition-opacity duration-1000"></div>
-                <img src="./assets/Generated Image February 03, 2026 - 4_36PM (1).png" 
-                    class="w-auto sm:h-20 md:h-20 lg:h-28 object-contain drop-shadow-2xl filter brightness-110 contrast-125" 
-                    alt="Rauda Boutique Logo">
-                <h2 class="text-center text-black tracking-[0.8em] font-Lora font-black text-sm md:text-base mt-3">BOUTIQUE</h2>
-            </div>
+  <div class="relative z-10 flex flex-col items-center justify-center w-full max-w-5xl px-6 fade-in-up">
+        <div class="relative group cursor-pointer transition-all duration-700 hover:-translate-y-1">
+            
+            <div class="absolute -inset-14 bg-white/5 blur-[60px] rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-1000 ease-out"></div>
+            
+            <img src="./assets/PERFIL 1.png" 
+                 class="relative w-auto h-24 md:h-32 lg:h-48 object-contain drop-shadow-[0_10px_10px_rgba(0,0,0,0.5)] filter brightness-110 contrast-110 transition-transform duration-500 group-hover:scale-105" 
+                 alt="Rauda Boutique Logo">
+            
+           <div class="mt-6 flex justify-center">
+    <h2 class="relative text-white/90 tracking-[0.8em] font-Lora font-medium text-xs md:text-sm uppercase opacity-90 group-hover:text-white group-hover:opacity-100 transition-colors">
+        <span class="typewriter-text inline-block overflow-hidden whitespace-nowrap border-r-[2px] border-white/70 pr-1">
+            BOUTIQUE
+        </span>
+    </h2>
+</div>
         </div>
-    </header>
+    </div>
+
+    <div class="absolute bottom-8 left-1/2 transform -translate-x-1/2 z-20 flex flex-col items-center gap-2 opacity-80">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6 text-white animate-bounce">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5" />
+        </svg>
+    </div>
+</header>
 
     <nav class="sticky top-0 z-40 bg-rauda-base/95 backdrop-blur-md border-b border-rauda-leather/5 py-4 shadow-sm" id="nav-container">
         <div class="relative max-w-5xl mx-auto">
