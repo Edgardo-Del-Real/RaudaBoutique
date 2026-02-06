@@ -473,53 +473,52 @@ function createFeaturedCardHtml(item) {
     const itemJson = JSON.stringify(item).replace(/"/g, "&quot;");
 
     return `
-    <div class="w-full max-w-5xl mx-auto mb-8 md:mb-12 lg:mb-16 fade-in-up relative group cursor-pointer overflow-hidden rounded-sm shadow-xl hover:shadow-2xl transition-shadow duration-500" onclick="openProductModal(${itemJson})">
+    <div class="w-full max-w-4xl mx-auto mb-8 md:mb-10 fade-in-up relative group cursor-pointer overflow-hidden rounded-sm shadow-xl hover:shadow-2xl transition-shadow duration-500" onclick="openProductModal(${itemJson})">
         
-        <div class="flex flex-col md:flex-row h-auto md:h-[450px] lg:h-[500px] bg-[#1a1512]">
+        <div class="flex flex-col md:flex-row h-auto md:h-[350px] lg:h-[380px] bg-[#1a1512]">
             
-            <div class="w-full h-64 sm:h-80 md:h-full md:w-[45%] relative overflow-hidden shrink-0">
+            <div class="w-full h-56 sm:h-64 md:h-full md:w-[40%] relative overflow-hidden shrink-0">
                 <div class="absolute inset-0 bg-black/10 z-10 group-hover:bg-transparent transition-colors duration-700"></div>
                 <img src="${imgUrl}" 
                      class="w-full h-full object-cover transform transition-transform duration-[1.5s] ease-in-out group-hover:scale-105" 
                      alt="${item.producto}">
             </div>
 
-            <div class="w-full md:w-[55%] p-5 sm:p-8 md:p-10 lg:p-14 flex flex-col justify-center relative text-rauda-base">
+            <div class="w-full md:w-[60%] p-5 md:p-6 lg:p-8 flex flex-col justify-center relative text-rauda-base">
                 
-                <div class="absolute top-4 right-4 opacity-5 pointer-events-none transition-all duration-500 group-hover:opacity-10">
-                    <i class="ph-fill ph-wine text-6xl sm:text-7xl md:text-8xl lg:text-9xl"></i>
+                <div class="absolute top-2 right-2 opacity-5 pointer-events-none transition-all duration-500 group-hover:opacity-10">
+                    <i class="ph-fill ph-wine text-5xl sm:text-6xl md:text-7xl"></i>
                 </div>
 
                 <div class="relative z-10 pr-0 md:pr-4">
                     
-                    <div class="flex items-center gap-3 mb-3 md:mb-4 lg:mb-6">
-                        <span class="h-[1px] w-6 md:w-8 bg-rauda-terracotta"></span>
-                        <span class="text-rauda-terracotta text-xs sm:text-[12px] lg:text-sm font-bold tracking-[0.25em] sm:tracking-[0.3em] uppercase whitespace-nowrap">
-                            EL VINO DE LA SEMANA
+                    <div class="flex items-center gap-2 mb-2 md:mb-3">
+                        <span class="h-[1px] w-4 md:w-6 bg-rauda-terracotta"></span>
+                        <span class="text-rauda-terracotta text-[10px] sm:text-xs font-bold tracking-[0.2em] uppercase whitespace-nowrap">
+                            VINO DE LA SEMANA
                         </span>
-                        <span class="h-[1px] w-6 md:w-8 bg-rauda-terracotta"></span>
-
+                        <span class="h-[1px] w-4 md:w-6 bg-rauda-terracotta"></span>
                     </div>
 
-                    <h3 class="font-display text-2xl sm:text-3xl md:text-3xl lg:text-4xl font-bold leading-tight mb-3 md:mb-4 lg:my-12 group-hover:text-rauda-sand transition-colors">
+                    <h3 class="font-display text-xl sm:text-2xl md:text-3xl font-bold leading-tight mb-2 md:mb-3 group-hover:text-rauda-sand transition-colors">
                         ${item.producto}
                     </h3>
 
-                    <p class="font-serif italic text-white/60 text-sm sm:text-base lg:text-base mb-6 md:mb-8 lg:mb-8 line-clamp-3 leading-relaxed">
-                        ${item.descripcion || "Una elección que es exclusiva y seleccionada por su carácter único. Perfecta para quienes buscan algo especial y diferente en cada sorbo."}
+                    <p class="font-serif italic text-white/60 text-xs sm:text-sm mb-4 md:mb-5 line-clamp-3 leading-relaxed">
+                        ${item.descripcion || "Una elección exclusiva seleccionada por su carácter único."}
                     </p>
 
-                    <div class="flex items-center justify-between border-t border-white/10 pt-4 md:pt-6 lg:pt-8 lg:mt-10">
+                    <div class="flex items-center justify-between border-t border-white/10 pt-3 md:pt-4 mt-auto">
                         <div class="flex flex-col">
-                            <span class="text-[9px] sm:text-[10px] uppercase tracking-widest text-white/40 mb-1">Precio</span>
-                            <span class="text-xl sm:text-2xl lg:text-3xl font-display font-bold text-white">
+                            <span class="text-[9px] uppercase tracking-widest text-white/40 mb-0.5">Precio</span>
+                            <span class="text-lg md:text-2xl font-display font-bold text-white">
                                 $${priceFormatted}
                             </span>
                         </div>
                         
-                        <button class="group/btn flex items-center gap-2 text-xs sm:text-sm font-bold uppercase tracking-widest text-white hover:text-rauda-terracotta transition-colors py-2 pl-4">
+                        <button class="group/btn flex items-center gap-2 text-[10px] md:text-xs font-bold uppercase tracking-widest text-white hover:text-rauda-terracotta transition-colors py-1 pl-3">
                             <span>Ver más</span>
-                            <i class="ph-bold ph-arrow-right group-hover/btn:translate-x-1 transition-transform text-sm sm:text-base"></i>
+                            <i class="ph-bold ph-arrow-right group-hover/btn:translate-x-1 transition-transform text-xs md:text-sm"></i>
                         </button>
                     </div>
                 </div>
