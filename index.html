@@ -252,24 +252,24 @@
         </div>
     </div>
 
-    <div id="search-modal" class="fixed inset-0 z-[110] hidden" role="dialog">
-        <div class="fixed inset-0 bg-rauda-dark/80 backdrop-blur-md transition-opacity opacity-0 duration-300" id="search-backdrop" onclick="closeSearchModal()"></div>
+    <div id="search-modal" class="fixed inset-0 z-[110] hidden flex-col items-center justify-start md:justify-center pt-0 md:pt-10 pb-0 md:pb-10" role="dialog">
+        <div class="absolute inset-0 bg-rauda-dark/80 backdrop-blur-md transition-opacity opacity-0 duration-300" id="search-backdrop" onclick="closeSearchModal()"></div>
         
-        <div class="fixed top-0 left-0 w-full h-[85vh] md:h-[75vh] bg-rauda-base shadow-2xl rounded-b-[2rem] transform transition-transform duration-500 ease-out-expo -translate-y-full flex flex-col" id="search-panel">
+        <div class="relative w-full md:w-[85%] lg:w-[60%] max-w-4xl h-[85vh] md:h-auto md:max-h-[80vh] bg-rauda-base shadow-[0_20px_60px_-15px_rgba(0,0,0,0.5)] rounded-b-[2rem] md:rounded-[2rem] transform transition-all duration-500 ease-out-expo -translate-y-full md:-translate-y-12 md:opacity-0 md:scale-95 flex flex-col z-10 overflow-hidden ring-1 ring-white/20" id="search-panel">
             
-            <div class="p-6 md:p-10 border-b border-rauda-leather/10 flex items-center gap-4">
-                <i class="ph-bold ph-magnifying-glass text-2xl text-rauda-terracotta animate-pulse"></i>
-                <input type="text" id="search-input" placeholder="Buscar productos, vinos, cepas..." class="flex-1 bg-transparent border-none outline-none text-xl md:text-3xl font-display text-rauda-dark placeholder-rauda-dark/30 w-full">
-                <button onclick="closeSearchModal()" class="text-rauda-leather/50 hover:text-rauda-terracotta transition-colors p-2 active:scale-90">
-                    <i class="ph-bold ph-x text-2xl"></i>
+            <div class="p-6 md:px-8 md:py-6 border-b border-rauda-leather/10 flex items-center gap-4 bg-white/40">
+                <i class="ph-bold ph-magnifying-glass text-xl md:text-2xl text-rauda-terracotta animate-pulse"></i>
+                <input type="text" id="search-input" placeholder="Buscar productos, vinos, cepas..." class="flex-1 bg-transparent border-none outline-none text-base md:text-lg font-display text-rauda-dark placeholder-rauda-dark/40 w-full">
+                <button onclick="closeSearchModal()" class="text-rauda-leather/50 hover:text-rauda-terracotta transition-all p-2 active:scale-90 bg-white shadow-sm border border-rauda-leather/5 rounded-full hover:bg-rauda-terracotta/10">
+                    <i class="ph-bold ph-x text-lg"></i>
                 </button>
             </div>
 
-            <div class="flex-1 overflow-y-auto p-6 md:p-10 bg-rauda-base rounded-b-[2rem]">
-                <div id="search-results" class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 md:gap-6 pb-10">
+            <div class="flex-1 overflow-y-auto p-6 md:p-8 bg-rauda-base/95 backdrop-blur-sm no-scrollbar">
+                <div id="search-results" class="grid grid-cols-2 gap-3 md:flex md:flex-col md:gap-2 pb-10 md:pb-2">
                     </div>
-                <div id="search-empty" class="hidden text-center py-20 opacity-50 flex-col items-center justify-center">
-                    <i class="ph-duotone ph-package text-5xl text-rauda-leather mb-3"></i>
+                <div id="search-empty" class="hidden text-center py-16 md:py-16 opacity-50 flex-col items-center justify-center">
+                    <i class="ph-duotone ph-package text-5xl md:text-6xl text-rauda-leather mb-3"></i>
                     <p class="font-serif italic text-rauda-dark text-lg">No encontramos lo que buscas.</p>
                 </div>
             </div>

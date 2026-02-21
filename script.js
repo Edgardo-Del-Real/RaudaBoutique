@@ -632,20 +632,22 @@ function openSearchModal() {
     const backdrop = document.getElementById('search-backdrop');
     const input = document.getElementById('search-input');
     
-    // Limpiamos los campos antes de abrir
     input.value = '';
     document.getElementById('search-results').innerHTML = '';
     document.getElementById('search-empty').classList.add('hidden');
 
+    // Cambiamos a 'flex' para que se centre bien en PC
     modal.classList.remove('hidden');
-    document.body.style.overflow = 'hidden'; // Evita que el fondo haga scroll
+    modal.classList.add('flex'); 
+    document.body.style.overflow = 'hidden'; 
     
     requestAnimationFrame(() => {
         backdrop.classList.remove('opacity-0');
-        panel.classList.remove('-translate-y-full');
-        panel.classList.add('translate-y-0');
         
-        // Enfoca el teclado automáticamente después de la animación
+        // Animación combinada (Móvil: baja desde arriba | PC: aparece y hace zoom)
+        panel.classList.remove('-translate-y-full', 'md:-translate-y-12', 'md:opacity-0', 'md:scale-95');
+        panel.classList.add('translate-y-0', 'md:opacity-100', 'md:scale-100');
+        
         setTimeout(() => input.focus(), 300); 
     });
 }
@@ -656,13 +658,65 @@ function closeSearchModal() {
     const backdrop = document.getElementById('search-backdrop');
 
     backdrop.classList.add('opacity-0');
-    panel.classList.remove('translate-y-0');
-    panel.classList.add('-translate-y-full');
+    
+    panel.classList.remove('translate-y-0', 'md:opacity-100', 'md:scale-100');
+    panel.classList.add('-translate-y-full', 'md:-translate-y-12', 'md:opacity-0', 'md:scale-95');
     
     setTimeout(() => { 
         modal.classList.add('hidden'); 
-        document.body.style.overflow = ''; 
+        modal.classList.remove('flex');
+        
+        // IMPORTANTE: Solo restauramos el scroll si no se abrió un producto en el medio
+        if (document.getElementById('product-modal').classList.contains('hidden')) {
+            document.body.style.overflow = ''; 
+        }
     }, 500);
+}
+
+// Diseño exclusivo para los resultados de búsqueda (Tarjeta en móvil, Lista en PC)
+function createSearchItemHtml(item, index) {
+    const imgUrl = item.imagen || 'https://via.placeholder.com/400x500?text=Sin+Imagen';
+    const priceFormatted = item.precio.toLocaleString('es-AR');
+    // Escape seguro de comillas
+    const itemJson = JSON.stringify(item).replace(/"/g, "&quot;");
+
+    // Al hacer clic: Cerramos el buscador y abrimos el producto con un leve retraso para fluidez
+    const onClickLogic = `closeSearchModal(); setTimeout(() => openProductModal(${itemJson}), 100);`;
+
+    return `
+    <article class="group cursor-pointer relative" onclick='${onClickLogic}' style="animation: fadeInUp 0.4s ease-out ${index * 0.03}s backwards">
+        
+        <div class="md:hidden flex flex-col h-full">
+            <div class="relative overflow-hidden aspect-[4/5] bg-gray-200 mb-2 rounded-sm shadow-sm w-full">
+                <img src="${imgUrl}" class="w-full h-full object-cover" alt="${item.producto}">
+                <div class="absolute inset-0 bg-gradient-to-t from-black/30 to-transparent opacity-60"></div>
+            </div>
+            <div class="px-1 flex flex-col gap-1">
+                <h3 class="font-serif text-sm text-rauda-dark leading-tight line-clamp-2">${item.producto}</h3>
+                <span class="font-sans font-bold text-rauda-leather text-xs tracking-wide mt-1">$${priceFormatted}</span>
+            </div>
+        </div>
+
+        <div class="hidden md:flex items-center justify-between p-3 rounded-xl hover:bg-white transition-all border border-transparent hover:border-rauda-leather/10 shadow-none hover:shadow-sm">
+            <div class="flex items-center gap-4">
+                <div class="w-14 h-14 rounded-md overflow-hidden bg-gray-100 shrink-0 shadow-inner">
+                    <img src="${imgUrl}" class="w-full h-full object-cover" alt="${item.producto}">
+                </div>
+                <div class="flex flex-col">
+                    <h3 class="font-serif text-base text-rauda-dark font-bold group-hover:text-rauda-terracotta transition-colors">${item.producto}</h3>
+                    <span class="text-[10px] uppercase tracking-widest text-rauda-dark/50 mt-1">${item.categoria} ${item.tipoVino ? `• ${item.tipoVino}` : ''}</span>
+                </div>
+            </div>
+            <div class="flex items-center gap-5 pr-2">
+                <span class="font-sans font-bold text-base text-rauda-leather">$${priceFormatted}</span>
+                <div class="w-8 h-8 rounded-full bg-rauda-leather/5 flex items-center justify-center text-rauda-leather group-hover:bg-rauda-terracotta group-hover:text-white transition-colors">
+                    <i class="ph-bold ph-caret-right"></i>
+                </div>
+            </div>
+        </div>
+
+    </article>
+    `;
 }
 
 // Escuchar lo que escribe el usuario en tiempo real
@@ -691,6 +745,6 @@ document.getElementById('search-input').addEventListener('input', (e) => {
     } else {
         emptyMessage.classList.add('hidden');
         
-        resultsContainer.innerHTML = filteredItems.map((item, index) => createCardHtml(item, index)).join('');
+        resultsContainer.innerHTML = filteredItems.map((item, index) => createSearchItemHtml(item, index)).join('');
     }
 });
