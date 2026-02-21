@@ -62,11 +62,6 @@ html, body {
         /* El cursor estilo Word (línea sólida inicial) */
         border-right: 2px solid rgba(255,255,255,0.8); 
         
-        /* LA ORQUESTA DE ANIMACIONES:
-           1. typing:    Espera 0.5s, luego escribe durante 2s.
-           2. blink:     Parpadea cada 0.75s infinitamente.
-           3. hide-cursor: A los 3s (0.5s espera + 2s escritura + 0.5s pausa final), mata el cursor.
-        */
         animation: 
             typing 2s steps(9) 0.5s forwards,
             blink 0.75s step-end infinite,

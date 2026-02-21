@@ -20,7 +20,8 @@ const KEYS = {
     imagen: 'imagen',
     destacado: 'destacado',
     disponible: 'disponible',
-    vinoDeLaSemana: 'vinoDeLaSemana'
+    vinoDeLaSemana: 'vinoDeLaSemana',
+    tipoVino: 'tipoVino' // Nueva columna para tipo de vino (tinto, blanco, rosado)
 };
 
 let CATALOG = []; 
@@ -55,12 +56,13 @@ async function initApp() {
                 id: String(item[KEYS.id] || index), 
                 categoria: (item[KEYS.categoria] || 'Varios').trim(),
                 producto: (item[KEYS.producto] || '').trim(),
-                precio: parsePrice(item[KEYS.precio]), // Corrección de precio aplicada
+                precio: parsePrice(item[KEYS.precio]),
                 descripcion: (item[KEYS.descripcion] || '').trim(),
-                imagen: procesarURLImagen(item[KEYS.imagen]), // Lógica Pelican de imágenes
+                imagen: procesarURLImagen(item[KEYS.imagen]),
                 destacado: isTrue(item[KEYS.destacado]),
                 disponible: isTrue(item[KEYS.disponible] || 'TRUE'),
-                vinoDeLaSemana: isTrue(item[KEYS.vinoDeLaSemana])
+                vinoDeLaSemana: isTrue(item[KEYS.vinoDeLaSemana]),
+                tipoVino: (item[KEYS.tipoVino] || '').trim() // LEEMOS EL NUEVO DATO
             }))
             .filter(item => item.producto && item.disponible); 
 
@@ -168,6 +170,66 @@ function renderProducts(category, btnElement) {
         }
         // ----------------------------------------------------
 
+        // --- INICIO NUEVO: LÓGICA DE SUB-FILTROS DINÁMICOS ---
+        const subCategories = [...new Set(gridItems.map(i => i.tipoVino).filter(v => v !== '' && v !== undefined))];
+        
+        if (subCategories.length > 0) {
+            const filterContainer = document.createElement('div');
+            filterContainer.className = 'flex flex-wrap gap-2 justify-center mb-8 fade-in-up delay-200 w-full';
+            
+            // Botón "Todos" por defecto
+            let filterHtml = `
+                <button class="sub-filter-btn px-4 py-1.5 rounded-full border border-rauda-terracotta bg-rauda-terracotta text-white text-[10px] uppercase tracking-wider font-bold transition-all shadow-md" data-filter="all">Todos</button>
+            `;
+            
+            // Botones dinámicos según el Sheets
+            subCategories.forEach(sub => {
+                filterHtml += `
+                    <button class="sub-filter-btn px-4 py-1.5 rounded-full border border-rauda-leather/20 text-rauda-leather hover:border-rauda-terracotta text-[10px] uppercase tracking-wider font-bold transition-all bg-white shadow-sm" data-filter="${sub}">${sub}</button>
+                `;
+            });
+            
+            filterContainer.innerHTML = filterHtml;
+            container.appendChild(filterContainer);
+
+            // Funcionalidad de filtrado sin recargar
+            setTimeout(() => { 
+                const buttons = container.querySelectorAll('.sub-filter-btn');
+                const cards = container.querySelectorAll('.js-product-card');
+
+                buttons.forEach(btn => {
+                    btn.addEventListener('click', () => {
+                        // Cambiar estética del botón activo
+                        buttons.forEach(b => {
+                            b.classList.remove('bg-rauda-terracotta', 'text-white', 'border-rauda-terracotta');
+                            b.classList.add('border-rauda-leather/20', 'text-rauda-leather', 'bg-white');
+                        });
+                        btn.classList.remove('border-rauda-leather/20', 'text-rauda-leather', 'bg-white');
+                        btn.classList.add('bg-rauda-terracotta', 'text-white', 'border-rauda-terracotta');
+
+                        // Ocultar/Mostrar tarjetas con animación
+                        const filter = btn.getAttribute('data-filter');
+                        let delayCounter = 0;
+                        
+                        cards.forEach(card => {
+                            const cardType = card.getAttribute('data-tipo');
+                            if (filter === 'all' || cardType === filter) {
+                                card.style.display = 'flex';
+                                // Reiniciar animación de Tailwind para que se vea elegante al filtrar
+                                card.style.animation = 'none';
+                                card.offsetHeight; 
+                                card.style.animation = `fadeInUp 0.5s ease-out ${delayCounter * 0.05}s backwards`;
+                                delayCounter++;
+                            } else {
+                                card.style.display = 'none';
+                            }
+                        });
+                    });
+                });
+            }, 10);
+        }
+        // --- FIN NUEVO: LÓGICA DE SUB-FILTROS DINÁMICOS ---
+
         if (gridItems.length === 0 && !featuredItem) {
             container.innerHTML += `<div class="text-center py-10 opacity-40 font-serif italic w-full">No hay productos en esta categoría.</div>`;
         } else {
@@ -194,7 +256,7 @@ function createCardHtml(item, index) {
 
     // DISEÑO EPICO: 4:5 ratio, imagen full cover, textos elegantes
     return `
-    <article class="product-card group cursor-pointer relative flex flex-col h-full" onclick='openProductModal(${itemJson})' style="animation: fadeInUp 0.6s ease-out ${index * 0.05}s backwards">
+    <article class="product-card group cursor-pointer relative flex flex-col h-full js-product-card" data-tipo="${item.tipoVino || ''}" onclick='openProductModal(${itemJson})' style="animation: fadeInUp 0.6s ease-out ${index * 0.05}s backwards">
         
         <div class="relative overflow-hidden aspect-[4/5] bg-gray-200 mb-3 rounded-sm shadow-sm w-full">
             <img src="${imgUrl}" class="product-image w-full h-full object-cover transition-transform duration-700 ease-in-out group-hover:scale-105" alt="${item.producto}" loading="lazy">
