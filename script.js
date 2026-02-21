@@ -1,12 +1,11 @@
-// script.js - RAUDA BOUTIQUE (FIXED & IMPROVED)
 
 // --- CONFIGURACIÓN ---
 const ID_SHEET = '1jKoiVaK619iS7hGGsqtxsrWgzePmF_VY33VbIgdc-ag'; 
 const SHEET_TAB = 'rauda'; 
 
 const CONFIG = {
-    whatsappNumber: '5493447558764',
-    businessName: 'Rauda Boutique',
+    whatsappNumber: '5493447402198',
+    businessName: 'Rauda',
     menuUrl: `https://opensheet.elk.sh/${ID_SHEET}/${SHEET_TAB}`,
 };
 
@@ -21,7 +20,8 @@ const KEYS = {
     destacado: 'destacado',
     disponible: 'disponible',
     vinoDeLaSemana: 'vinoDeLaSemana',
-    tipoVino: 'tipoVino' // Nueva columna para tipo de vino (tinto, blanco, rosado)
+    tipoVino: 'tipoVino', // Nueva columna para tipo de vino (tinto, blanco, rosado)
+    descuento: 'descuento' // Precio con descuento (si tiene valor, el producto está en oferta)
 };
 
 let CATALOG = []; 
@@ -62,7 +62,8 @@ async function initApp() {
                 destacado: isTrue(item[KEYS.destacado]),
                 disponible: isTrue(item[KEYS.disponible] || 'TRUE'),
                 vinoDeLaSemana: isTrue(item[KEYS.vinoDeLaSemana]),
-                tipoVino: (item[KEYS.tipoVino] || '').trim() // LEEMOS EL NUEVO DATO
+                tipoVino: (item[KEYS.tipoVino] || '').trim(), // LEEMOS EL NUEVO DATO
+                descuento: parsePrice(item[KEYS.descuento]) || null // Precio con descuento
             }))
             .filter(item => item.producto && item.disponible); 
 
@@ -253,6 +254,15 @@ function createCardHtml(item, index) {
     const priceFormatted = item.precio.toLocaleString('es-AR');
     // Escape seguro para JSON en HTML
     const itemJson = JSON.stringify(item).replace(/"/g, "&quot;");
+    
+    // Lógica de precio con descuento
+    const hasDiscount = item.descuento && item.descuento > 0;
+    const discountFormatted = hasDiscount ? item.descuento.toLocaleString('es-AR') : null;
+    
+    const priceHtml = hasDiscount 
+        ? `<span class="font-sans text-rauda-dark/40 line-through text-[10px] md:text-xs">$${priceFormatted}</span>
+           <span class="font-sans font-bold text-red-600 whitespace-nowrap text-xs md:text-sm tracking-wide">$${discountFormatted}</span>`
+        : `<span class="font-sans font-bold text-rauda-leather whitespace-nowrap text-xs md:text-sm tracking-wide">$${priceFormatted}</span>`;
 
     // DISEÑO EPICO: 4:5 ratio, imagen full cover, textos elegantes
     return `
@@ -263,6 +273,8 @@ function createCardHtml(item, index) {
             
             <div class="absolute inset-0 bg-gradient-to-t from-black/30 to-transparent opacity-60 group-hover:opacity-40 transition-opacity duration-300"></div>
             
+            ${hasDiscount ? `<div class="absolute top-2 left-2 bg-red-600 text-white text-[9px] md:text-[10px] font-bold uppercase tracking-wider px-2 py-1 rounded-sm shadow-md z-10">Oferta</div>` : ''}
+            
             <div class="absolute bottom-2 right-2 bg-white/95 backdrop-blur-sm text-rauda-leather w-8 h-8 md:w-10 md:h-10 rounded-full flex items-center justify-center shadow-lg md:translate-y-12 md:opacity-0 md:group-hover:translate-y-0 md:group-hover:opacity-100 transition-all duration-300 z-10">
                 <i class="ph-bold ph-plus text-base md:text-lg"></i>
             </div>
@@ -271,7 +283,9 @@ function createCardHtml(item, index) {
         <div class="px-1 flex flex-col justify-between flex-1">
             <div class="flex flex-col gap-1">
                 <h3 class="font-serif text-sm md:text-base text-rauda-dark leading-tight group-hover:text-rauda-terracotta transition-colors line-clamp-2">${item.producto}</h3>
-                <span class="font-sans font-bold text-rauda-leather whitespace-nowrap text-xs md:text-sm tracking-wide mt-1">$${priceFormatted}</span>
+                <div class="flex items-center gap-2 mt-1">
+                    ${priceHtml}
+                </div>
             </div>
         </div>
     </article>
@@ -315,7 +329,9 @@ function addToCart(item) {
     if (existing) {
         existing.cantidad++;
     } else {
-        cart.push({ ...item, cantidad: 1, id: String(item.id) });
+        // Usar precio con descuento si existe
+        const precioFinal = (item.descuento && item.descuento > 0) ? item.descuento : item.precio;
+        cart.push({ ...item, precio: precioFinal, precioOriginal: item.precio, cantidad: 1, id: String(item.id) });
     }
     saveCart();
     updateCartIcon();
@@ -415,7 +431,7 @@ function selectPayment(method) {
 function sendOrderToWhatsapp() {
     if (cart.length === 0) return;
     
-    let message = `Hola *${CONFIG.businessName}*, deseo realizar el siguiente pedido:%0A%0A`;
+    let message = `¡Hola *${CONFIG.businessName}*!, deseo realizar el siguiente pedido:%0A%0A`;
     let total = 0;
     
     cart.forEach(item => {
@@ -455,7 +471,19 @@ function openProductModal(item) {
     document.getElementById('modal-cat').innerText = item.categoria;
     document.getElementById('modal-title').innerText = item.producto;
     document.getElementById('modal-desc').innerText = item.descripcion || 'Sin descripción disponible.';
-    document.getElementById('modal-price').innerText = "$" + item.precio.toLocaleString('es-AR');
+    
+    // Lógica de precio con descuento en modal
+    const priceEl = document.getElementById('modal-price');
+    const hasDiscount = item.descuento && item.descuento > 0;
+    
+    if (hasDiscount) {
+        priceEl.innerHTML = `
+            <span class="text-rauda-dark/40 line-through text-lg mr-2">$${item.precio.toLocaleString('es-AR')}</span>
+            <span class="text-red-600 font-bold">$${item.descuento.toLocaleString('es-AR')}</span>
+        `;
+    } else {
+        priceEl.innerHTML = "$" + item.precio.toLocaleString('es-AR');
+    }
     
     const btn = document.getElementById('modal-add-btn');
     const newBtn = btn.cloneNode(true);
@@ -533,6 +561,15 @@ function createFeaturedCardHtml(item) {
     const priceFormatted = item.precio.toLocaleString('es-AR');
     // Escape seguro para JSON
     const itemJson = JSON.stringify(item).replace(/"/g, "&quot;");
+    
+    // Lógica de precio con descuento
+    const hasDiscount = item.descuento && item.descuento > 0;
+    const discountFormatted = hasDiscount ? item.descuento.toLocaleString('es-AR') : null;
+    
+    const priceHtml = hasDiscount 
+        ? `<span class="text-white/50 line-through text-sm md:text-base mr-2">$${priceFormatted}</span>
+           <span class="text-lg md:text-2xl font-display font-bold text-red-400">$${discountFormatted}</span>`
+        : `<span class="text-lg md:text-2xl font-display font-bold text-white">$${priceFormatted}</span>`;
 
     return `
     <div class="w-full max-w-4xl mx-auto mb-8 md:mb-10 fade-in-up relative group cursor-pointer overflow-hidden rounded-sm shadow-xl hover:shadow-2xl transition-shadow duration-500" onclick="openProductModal(${itemJson})">
@@ -541,6 +578,7 @@ function createFeaturedCardHtml(item) {
             
             <div class="w-full h-56 sm:h-64 md:h-full md:w-[40%] relative overflow-hidden shrink-0">
                 <div class="absolute inset-0 bg-black/10 z-10 group-hover:bg-transparent transition-colors duration-700"></div>
+                ${hasDiscount ? `<div class="absolute top-3 left-3 bg-red-600 text-white text-[10px] md:text-xs font-bold uppercase tracking-wider px-3 py-1.5 rounded-sm shadow-lg z-20">En Oferta</div>` : ''}
                 <img src="${imgUrl}" 
                      class="w-full h-full object-cover transform transition-transform duration-[1.5s] ease-in-out group-hover:scale-105" 
                      alt="${item.producto}">
@@ -572,10 +610,10 @@ function createFeaturedCardHtml(item) {
 
                     <div class="flex items-center justify-between border-t border-white/10 pt-3 md:pt-4 mt-auto">
                         <div class="flex flex-col">
-                            <span class="text-[9px] uppercase tracking-widest text-white/40 mb-0.5">Precio</span>
-                            <span class="text-lg md:text-2xl font-display font-bold text-white">
-                                $${priceFormatted}
-                            </span>
+                            <span class="text-[9px] uppercase tracking-widest text-white/40 mb-0.5">${hasDiscount ? 'Precio Oferta' : 'Precio'}</span>
+                            <div class="flex items-center">
+                                ${priceHtml}
+                            </div>
                         </div>
                         
                         <button class="group/btn flex items-center gap-2 text-[10px] md:text-xs font-bold uppercase tracking-widest text-white hover:text-rauda-terracotta transition-colors py-1 pl-3">
@@ -679,6 +717,17 @@ function createSearchItemHtml(item, index) {
     const priceFormatted = item.precio.toLocaleString('es-AR');
     // Escape seguro de comillas
     const itemJson = JSON.stringify(item).replace(/"/g, "&quot;");
+    
+    // Lógica de precio con descuento
+    const hasDiscount = item.descuento && item.descuento > 0;
+    const discountFormatted = hasDiscount ? item.descuento.toLocaleString('es-AR') : null;
+    
+    const priceHtml = hasDiscount 
+        ? `<div class="flex flex-col items-end">
+               <span class="font-sans text-rauda-dark/40 line-through text-[10px]">$${priceFormatted}</span>
+               <span class="font-sans font-bold text-sm md:text-base text-red-600">$${discountFormatted}</span>
+           </div>`
+        : `<span class="font-sans font-bold text-sm md:text-base text-rauda-leather">$${priceFormatted}</span>`;
 
     // Al hacer clic: Cerramos el buscador y abrimos el producto con un leve retraso para fluidez
     const onClickLogic = `closeSearchModal(); setTimeout(() => openProductModal(${itemJson}), 100);`;
@@ -689,8 +738,9 @@ function createSearchItemHtml(item, index) {
         <div class="flex items-center justify-between p-2 md:p-3 rounded-xl hover:bg-white active:bg-white transition-all border border-transparent hover:border-rauda-leather/10 active:border-rauda-leather/10 shadow-none hover:shadow-sm">
             
             <div class="flex items-center gap-3 md:gap-4 overflow-hidden">
-                <div class="w-12 h-12 md:w-14 md:h-14 rounded-md overflow-hidden bg-gray-100 shrink-0 shadow-inner">
+                <div class="relative w-12 h-12 md:w-14 md:h-14 rounded-md overflow-hidden bg-gray-100 shrink-0 shadow-inner">
                     <img src="${imgUrl}" class="w-full h-full object-cover" alt="${item.producto}">
+                    ${hasDiscount ? `<div class="absolute top-0 left-0 bg-red-600 text-white text-[6px] font-bold px-1 py-0.5">OFERTA</div>` : ''}
                 </div>
                 <div class="flex flex-col overflow-hidden pr-2">
                     <h3 class="font-serif text-sm md:text-base text-rauda-dark font-bold group-hover:text-rauda-terracotta truncate transition-colors">${item.producto}</h3>
@@ -699,7 +749,7 @@ function createSearchItemHtml(item, index) {
             </div>
 
             <div class="flex items-center gap-3 md:gap-5 pr-1 md:pr-2 shrink-0">
-                <span class="font-sans font-bold text-sm md:text-base text-rauda-leather">$${priceFormatted}</span>
+                ${priceHtml}
                 <div class="w-7 h-7 md:w-8 md:h-8 rounded-full bg-rauda-leather/5 flex items-center justify-center text-rauda-leather group-hover:bg-rauda-terracotta group-hover:text-white transition-colors">
                     <i class="ph-bold ph-caret-right text-xs md:text-base"></i>
                 </div>
