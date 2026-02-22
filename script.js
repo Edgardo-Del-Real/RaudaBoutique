@@ -129,14 +129,15 @@ function renderProducts(category, btnElement) {
 
     const container = document.getElementById('main-content');
     
-    // 1. Filtrar items
+    // 1. Filtrar items de la categoría principal
     const allItems = CATALOG.filter(i => i.categoria === category);
 
     // 2. Buscar Destacado (Vino de la semana)
     const featuredItem = allItems.find(i => i.vinoDeLaSemana);
     
-    // 3. Items normales (excluyendo el destacado)
-    const gridItems = featuredItem ? allItems.filter(i => i.id !== featuredItem.id) : allItems;
+    // 3. Items normales (excluyendo el destacado) y guardar copia original
+    let gridItems = featuredItem ? allItems.filter(i => i.id !== featuredItem.id) : allItems;
+    const originalGridItems = [...gridItems];
 
     // Animación de salida
     container.style.opacity = '0';
@@ -155,12 +156,9 @@ function renderProducts(category, btnElement) {
         `;
         container.appendChild(titleDiv);
 
-        // --- LÓGICA VINO DE LA SEMANA (Card + Separador) ---
+        // --- LÓGICA VINO DE LA SEMANA ---
         if (featuredItem) {
-            // A. La Card Destacada
             container.innerHTML += createFeaturedCardHtml(featuredItem);
-            
-            // B. El Separador Estético (Sutil y elegante)
             container.innerHTML += `
                 <div class="w-full flex justify-center items-center mb-12 fade-in-up delay-100 opacity-60">
                     <span class="h-px w-16 md:w-32 bg-gradient-to-r from-transparent via-rauda-leather/40 to-transparent"></span>
@@ -169,82 +167,120 @@ function renderProducts(category, btnElement) {
                 </div>
             `;
         }
-        // ----------------------------------------------------
 
-        // --- INICIO NUEVO: LÓGICA DE SUB-FILTROS DINÁMICOS ---
+        // --- CONTROLES: FILTROS Y ORDENAMIENTO ---
         const subCategories = [...new Set(gridItems.map(i => i.tipoVino).filter(v => v !== '' && v !== undefined))];
         
-        if (subCategories.length > 0) {
-            const filterContainer = document.createElement('div');
-            filterContainer.className = 'flex flex-wrap gap-2 justify-center mb-8 fade-in-up delay-200 w-full';
-            
-            // Botón "Todos" por defecto
-            let filterHtml = `
-                <button class="sub-filter-btn px-4 py-1.5 rounded-full border border-rauda-terracotta bg-rauda-terracotta text-white text-[10px] uppercase tracking-wider font-bold transition-all shadow-md" data-filter="all">Todos</button>
-            `;
-            
-            // Botones dinámicos según el Sheets
-            subCategories.forEach(sub => {
-                filterHtml += `
-                    <button class="sub-filter-btn px-4 py-1.5 rounded-full border border-rauda-leather/20 text-rauda-leather hover:border-rauda-terracotta text-[10px] uppercase tracking-wider font-bold transition-all bg-white shadow-sm" data-filter="${sub}">${sub}</button>
-                `;
-            });
-            
-            filterContainer.innerHTML = filterHtml;
-            container.appendChild(filterContainer);
-
-            // Funcionalidad de filtrado sin recargar
-            setTimeout(() => { 
-                const buttons = container.querySelectorAll('.sub-filter-btn');
-                const cards = container.querySelectorAll('.js-product-card');
-
-                buttons.forEach(btn => {
-                    btn.addEventListener('click', () => {
-                        // Cambiar estética del botón activo
-                        buttons.forEach(b => {
-                            b.classList.remove('bg-rauda-terracotta', 'text-white', 'border-rauda-terracotta');
-                            b.classList.add('border-rauda-leather/20', 'text-rauda-leather', 'bg-white');
-                        });
-                        btn.classList.remove('border-rauda-leather/20', 'text-rauda-leather', 'bg-white');
-                        btn.classList.add('bg-rauda-terracotta', 'text-white', 'border-rauda-terracotta');
-
-                        // Ocultar/Mostrar tarjetas con animación
-                        const filter = btn.getAttribute('data-filter');
-                        let delayCounter = 0;
-                        
-                        cards.forEach(card => {
-                            const cardType = card.getAttribute('data-tipo');
-                            if (filter === 'all' || cardType === filter) {
-                                card.style.display = 'flex';
-                                // Reiniciar animación de Tailwind para que se vea elegante al filtrar
-                                card.style.animation = 'none';
-                                card.offsetHeight; 
-                                card.style.animation = `fadeInUp 0.5s ease-out ${delayCounter * 0.05}s backwards`;
-                                delayCounter++;
-                            } else {
-                                card.style.display = 'none';
-                            }
-                        });
-                    });
-                });
-            }, 10);
-        }
-        // --- FIN NUEVO: LÓGICA DE SUB-FILTROS DINÁMICOS ---
-
-        if (gridItems.length === 0 && !featuredItem) {
-            container.innerHTML += `<div class="text-center py-10 opacity-40 font-serif italic w-full">No hay productos en esta categoría.</div>`;
-        } else {
-            const gridDiv = document.createElement('div');
-            gridDiv.className = 'grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 md:gap-6 pb-10';
-            
-            gridItems.forEach((item, index) => {
-                gridDiv.innerHTML += createCardHtml(item, index);
-            });
-            
-            container.appendChild(gridDiv);
-            initScrollAnimations();
-        }
+        const controlsDiv = document.createElement('div');
+        // Usamos flex para separar filtros a la izquierda y ordenamiento a la derecha en PC, apilado en móviles
+        controlsDiv.className = 'flex flex-col md:flex-row justify-between items-center w-full gap-4 mb-8 fade-in-up delay-200';
         
+        // 1. HTML de Sub-Filtros
+        let filterHtml = '<div class="flex flex-wrap gap-2 justify-center md:justify-start">';
+        if (subCategories.length > 0) {
+            filterHtml += `<button class="sub-filter-btn px-4 py-1.5 rounded-full border border-rauda-terracotta bg-rauda-terracotta text-white text-[10px] uppercase tracking-wider font-bold transition-all shadow-md" data-filter="all">Todos</button>`;
+            subCategories.forEach(sub => {
+                filterHtml += `<button class="sub-filter-btn px-4 py-1.5 rounded-full border border-rauda-leather/20 text-rauda-leather hover:border-rauda-terracotta text-[10px] uppercase tracking-wider font-bold transition-all bg-white shadow-sm" data-filter="${sub}">${sub}</button>`;
+            });
+        }
+        filterHtml += '</div>';
+
+        // 2. HTML de Select de Ordenamiento
+        const sortHtml = `
+            <div class="relative flex items-center gap-2 bg-white px-4 py-2 rounded-full border border-rauda-leather/20 shadow-sm shrink-0 cursor-pointer hover:border-rauda-terracotta transition-colors group">
+                <i class="ph-bold ph-sort-ascending text-rauda-leather group-hover:text-rauda-terracotta transition-colors"></i>
+                
+                <span id="sort-display" class="text-rauda-leather text-[10px] md:text-xs uppercase tracking-wider font-bold pointer-events-none group-hover:text-rauda-terracotta transition-colors">
+                    Recomendados
+                </span>
+                
+                <i class="ph-bold ph-caret-down text-rauda-leather/50 text-xs ml-1 pointer-events-none group-hover:text-rauda-terracotta/50 transition-colors"></i>
+                
+                <select id="sort-select" class="absolute inset-0 w-full h-full opacity-0 cursor-pointer appearance-none">
+                    <option value="default">Recomendados</option>
+                    <option value="alpha">A - Z</option>
+                    <option value="price-asc">Menor Precio</option>
+                    <option value="price-desc">Mayor Precio</option>
+                </select>
+            </div>
+        `;
+
+        controlsDiv.innerHTML = filterHtml + sortHtml;
+        container.appendChild(controlsDiv);
+
+        // Contenedor dinámico de la grilla de productos
+        const gridDivContainer = document.createElement('div');
+        gridDivContainer.id = 'grid-container';
+        gridDivContainer.className = 'w-full';
+        container.appendChild(gridDivContainer);
+
+        // --- LÓGICA DE ESTADO (FILTROS + ORDEN) ---
+        let currentFilter = 'all';
+        let currentSort = 'default';
+
+        function updateGrid() {
+            let filtered = [...originalGridItems];
+            
+            // 1. Aplicar filtro
+            if (currentFilter !== 'all') {
+                filtered = filtered.filter(i => i.tipoVino === currentFilter);
+            }
+
+            // 2. Aplicar ordenamiento
+            if (currentSort === 'alpha') {
+                filtered.sort((a, b) => a.producto.localeCompare(b.producto));
+            } else if (currentSort === 'price-asc') {
+                // Considera el precio con descuento si existe
+                filtered.sort((a, b) => (a.descuento || a.precio) - (b.descuento || b.precio));
+            } else if (currentSort === 'price-desc') {
+                filtered.sort((a, b) => (b.descuento || b.precio) - (a.descuento || a.precio));
+            }
+
+            // 3. Renderizar resultados
+            if (filtered.length === 0 && !featuredItem) {
+                gridDivContainer.innerHTML = `<div class="text-center py-10 opacity-40 font-serif italic w-full">No hay productos en esta categoría.</div>`;
+            } else {
+                const gridHtml = `<div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 md:gap-6 pb-10">` + 
+                    filtered.map((item, index) => createCardHtml(item, index)).join('') + 
+                `</div>`;
+                gridDivContainer.innerHTML = gridHtml;
+                
+                // Reiniciamos el observador de animaciones tras actualizar el DOM
+                setTimeout(initScrollAnimations, 50);
+            }
+        }
+
+        // Asignar Event Listeners una vez inyectado el HTML
+        setTimeout(() => { 
+            // Botones de filtro
+            const buttons = container.querySelectorAll('.sub-filter-btn');
+            buttons.forEach(btn => {
+                btn.addEventListener('click', () => {
+                    buttons.forEach(b => {
+                        b.classList.remove('bg-rauda-terracotta', 'text-white', 'border-rauda-terracotta');
+                        b.classList.add('border-rauda-leather/20', 'text-rauda-leather', 'bg-white');
+                    });
+                    btn.classList.remove('border-rauda-leather/20', 'text-rauda-leather', 'bg-white');
+                    btn.classList.add('bg-rauda-terracotta', 'text-white', 'border-rauda-terracotta');
+
+                    currentFilter = btn.getAttribute('data-filter');
+                    updateGrid();
+                });
+            });
+
+            // Selector de ordenamiento
+            const sortSelect = document.getElementById('sort-select');
+            if(sortSelect) {
+                sortSelect.addEventListener('change', (e) => {
+                    currentSort = e.target.value;
+                    updateGrid();
+                });
+            }
+            
+            // Cargar grilla inicial
+            updateGrid();
+        }, 10);
+
         container.style.opacity = '1';
         container.style.transform = 'translateY(0)';
     }, 300);
