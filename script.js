@@ -250,6 +250,20 @@ function renderProducts(category, btnElement) {
             }
         }
 
+        function updateSortDisplay(value) {
+            const sortDisplay = document.getElementById('sort-display');
+            if (!sortDisplay) return;
+
+            const labels = {
+                'default': 'Recomendados',
+                'alpha': 'A - Z',
+                'price-asc': 'Menor Precio',
+                'price-desc': 'Mayor Precio'
+            };
+
+            sortDisplay.innerText = labels[value] || 'Recomendados';
+        }
+
         // Asignar Event Listeners una vez inyectado el HTML
         setTimeout(() => { 
             // Botones de filtro
@@ -271,8 +285,12 @@ function renderProducts(category, btnElement) {
             // Selector de ordenamiento
             const sortSelect = document.getElementById('sort-select');
             if(sortSelect) {
+                sortSelect.value = currentSort;
+                updateSortDisplay(currentSort);
+
                 sortSelect.addEventListener('change', (e) => {
                     currentSort = e.target.value;
+                    updateSortDisplay(currentSort);
                     updateGrid();
                 });
             }
