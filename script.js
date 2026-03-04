@@ -236,9 +236,9 @@ function renderProducts(category, btnElement) {
         // Usamos flex para separar filtros a la izquierda y ordenamiento a la derecha en PC, apilado en móviles
         controlsDiv.className = 'flex flex-col md:flex-row justify-between items-center w-full gap-4 mb-8 fade-in-up delay-200';
         
-        // 1. HTML de Sub-Filtros
+        // 1. HTML de Sub-Filtros (solo para la categoría "Vinos y Espumantes")
         let filterHtml = '<div class="flex flex-wrap gap-2 justify-center md:justify-start">';
-        if (subCategories.length > 0) {
+        if (subCategories.length > 0 && category === 'Vinos y Espumantes') {
             filterHtml += `<button class="sub-filter-btn px-4 py-1.5 rounded-full border border-rauda-terracotta bg-rauda-terracotta text-white text-[10px] uppercase tracking-wider font-bold transition-all shadow-md" data-filter="all">Todos</button>`;
             subCategories.forEach(sub => {
                 filterHtml += `<button class="sub-filter-btn px-4 py-1.5 rounded-full border border-rauda-leather/20 text-rauda-leather hover:border-rauda-terracotta text-[10px] uppercase tracking-wider font-bold transition-all bg-white shadow-sm" data-filter="${sub}">${sub}</button>`;
