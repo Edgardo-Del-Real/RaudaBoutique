@@ -559,6 +559,7 @@ function selectPayment(method) {
     selectedPayment = method === 'efectivo' ? 'Efectivo' : 'Transferencia';
     const btnCash = document.getElementById('btn-pago-efectivo');
     const btnTransfer = document.getElementById('btn-pago-transferencia');
+    const aliasInfo = document.getElementById('transfer-alias-info');
 
     const activeClasses = ['bg-rauda-terracotta', 'text-white', 'border-rauda-terracotta'];
     const inactiveClasses = ['bg-white', 'text-rauda-leather', 'border-rauda-leather/20'];
@@ -568,11 +569,13 @@ function selectPayment(method) {
         btnCash.classList.remove(...inactiveClasses);
         btnTransfer.classList.add(...inactiveClasses);
         btnTransfer.classList.remove(...activeClasses);
+        aliasInfo.classList.add('hidden');
     } else {
         btnTransfer.classList.add(...activeClasses);
         btnTransfer.classList.remove(...inactiveClasses);
         btnCash.classList.add(...inactiveClasses);
         btnCash.classList.remove(...activeClasses);
+        aliasInfo.classList.remove('hidden');
     }
 }
 

@@ -191,8 +191,8 @@
                 </button>
 
                 <div class="w-full md:w-1/2 aspect-[3/4] max-h-[45vh] md:aspect-auto md:max-h-none md:h-auto relative bg-gray-100 shrink-0 flex items-center justify-center">                    
-                    <img id="modal-img" src="" class="w-full h-full object-contain md:object-fill">
-                    <div class="absolute inset-0 bg-gradient-to-t from-rauda-base via-transparent to-transparent md:hidden"></div>
+                    <img id="modal-img" src="" class="w-full h-full object-contain md:object-cover">
+                    <div class="absolute inset-0 bg-gradient-to-t from-rauda-base via-transparent to-transparent md:hidden pointer-events-none"></div>
                 </div>
 
                 <div class="w-full md:w-1/2 p-6 md:p-10 flex flex-col h-full overflow-y-auto relative -mt-6 md:mt-0 z-10 bg-rauda-base rounded-t-[2rem] md:rounded-none">
@@ -246,6 +246,16 @@
                         <button onclick="selectPayment('transferencia')" id="btn-pago-transferencia" class="flex-1 py-2.5 px-2 rounded-lg border transition-all active:scale-95 text-[10px] flex items-center justify-center gap-1.5 font-bold uppercase tracking-wider shadow-sm bg-white text-rauda-leather border-rauda-leather/20">
                             <i class="ph-fill ph-bank text-base"></i> Transferencia
                         </button>
+                    </div>
+                    
+                    <div id="transfer-alias-info" class="hidden mb-3 p-2.5 rounded-lg bg-rauda-terracotta/10 border border-rauda-terracotta/30 animate-[fadeIn_0.3s_ease-in-out]">
+                        <div class="flex items-center gap-2">
+                            <i class="ph-fill ph-bank text-lg text-rauda-terracotta"></i>
+                            <div class="flex-1">
+                                <p class="text-rauda-dark/70 text-[9px] mb-0.5">Transferir a:</p>
+                                <p class="text-rauda-terracotta font-bold text-sm tracking-wide">RAUDA</p>
+                            </div>
+                        </div>
                     </div>
 
                     <div class="flex justify-between items-end mb-4">
